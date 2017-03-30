@@ -4,6 +4,7 @@
 #include <string>
 #include <thread>
 #include <SFML\Network.hpp>
+#include <atomic>
 using TcpClient = sf::TcpSocket;
 using TcpClientPtr = std::unique_ptr<TcpClient>;
 using TcpClients = std::vector<TcpClientPtr>;
@@ -20,8 +21,10 @@ public:
 	void input(TcpClient& socket);
 	void runInputThread(TcpClient & socket);
 	char getCMD(); 
+	int getClientNum(); 
 	std::string lastMessage; 
 private:
+	std::atomic<int> clientNum = 9; 
 	char cmd = '0'; 
 	char newCmd = '0'; 
 	char prevCmd = '0';

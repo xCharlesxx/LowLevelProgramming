@@ -4,8 +4,10 @@
 #include <string>
 #include <SFML\Network.hpp>
 #include "ClientNetwork.h"
-
+#include <Windows.h>
 int x = 0; 
+void PlayerDead(); 
+void waitForValidID(ClientNetwork& CN); 
 int main()
 {
 	ClientNetwork* CN = new ClientNetwork(); 
@@ -25,11 +27,13 @@ int main()
 		shape.setFillColor(sf::Color::Green);
 		shape.setPosition(((shapeSize*2)*x), ((shapeSize * 2)*y));
 		grid.push_back(shape); 
-
 	}
-	
+
 	std::thread networking(&ClientNetwork::client, CN);
-	
+	waitForValidID(*CN);
+	x = CN->getClientNum() * 10; 
+	grid[x].setFillColor(sf::Color::Blue);
+
 	while (window.isOpen())
 	{
 		sf::Event event;
@@ -39,6 +43,7 @@ int main()
 				window.close();
 		}
 		window.clear();
+		
 		if (clock.getElapsedTime().asSeconds() > 0.1)
 		{
 			switch (CN->getCMD())
@@ -46,34 +51,62 @@ int main()
 			case 'L':
 				if (x < 0 || x % gridWidth == 0)
 				{
+					PlayerDead();
 					x += gridWidth;
 				}
 				x--;
-				grid[x].setFillColor(sf::Color::Red);
+				if (grid[x].getFillColor() == sf::Color::Red)
+				{
+					PlayerDead();
+					grid[x].setFillColor(sf::Color::Cyan);
+				}
+				else
+					grid[x].setFillColor(sf::Color::Red); 
 				break;
 			case 'R':
 				x++;
 				if (x % gridWidth == 0 && x != 0)
 				{
+					PlayerDead();
 					x -= gridWidth;
 				}
-				grid[x].setFillColor(sf::Color::Red);
+				if (grid[x].getFillColor() == sf::Color::Red)
+				{
+					PlayerDead();
+					grid[x].setFillColor(sf::Color::Cyan);
+				}
+				else
+					grid[x].setFillColor(sf::Color::Red);
 				break;
 			case 'U':
 				x -= gridWidth;
 				if (x < 0)
 				{
+					PlayerDead();
 					x += gridWidth*gridHeight;
 				}
-				grid[x].setFillColor(sf::Color::Red);
+				if (grid[x].getFillColor() == sf::Color::Red)
+				{
+					PlayerDead();
+					grid[x].setFillColor(sf::Color::Cyan);
+				}
+				else
+					grid[x].setFillColor(sf::Color::Red);
 				break;
 			case 'D':
 				x += gridWidth;
-				if (x > (gridWidth*gridHeight))
+				if (x >= (gridWidth*gridHeight))
 				{
+					PlayerDead(); 
 					x -= gridWidth*gridHeight; 
 				}
-				grid[x].setFillColor(sf::Color::Red);
+				if (grid[x].getFillColor() == sf::Color::Red)
+				{
+					PlayerDead();
+					grid[x].setFillColor(sf::Color::Cyan);
+				}
+				else
+					grid[x].setFillColor(sf::Color::Red);
 				break;
 			}
 			clock.restart(); 
@@ -88,3 +121,19 @@ int main()
 	return 0;
 }
 
+void PlayerDead()
+{
+	int msgboxID = MessageBox(NULL, (LPCWSTR)L"PLAYERDEAD", (LPCWSTR)L"MESSAGE", MB_ICONWARNING);
+}
+
+void waitForValidID(ClientNetwork& CN)
+{
+	bool b = true;
+	while (b)
+	{
+		if (CN.getClientNum() < 5)
+		{
+			b = false; 
+		}
+	}
+}

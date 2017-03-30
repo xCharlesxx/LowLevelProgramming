@@ -26,12 +26,26 @@ void ClientNetwork::client()
 			{
 				std::string packetStore;
 				packet >> packetStore; 
-				newCmd = packetStore[0];
-				if (prevCmd == newCmd) {}
-				else
+				if (packetStore != "")
 				{
-					cmd = newCmd;
-					prevCmd = newCmd;
+					switch (packetStore[0])
+					{
+					case '0':
+					case '1':
+					case '2':
+					case '3':
+						clientNum = (packetStore[0] - 48);
+						break;
+					default:
+						if (packetStore[1] == clientNum)
+							newCmd = packetStore[0];
+						break;
+					}
+					if (prevCmd != newCmd)
+					{
+						cmd = newCmd;
+						prevCmd = newCmd;
+					}
 				}
 			}
 		} while (status != sf::Socket::Disconnected);
@@ -39,17 +53,18 @@ void ClientNetwork::client()
 	return input(socket); 
 		//runInputThread(socket);
 }
-void ClientNetwork::runInputThread(TcpClient & socket)
-{
-	//std::thread input(input, socket);
-	//std::thread input(&ClientNetwork::input, this);
-}
+//void ClientNetwork::runInputThread(TcpClient & socket)
+//{
+//	//std::thread input(input, socket);
+//	//std::thread input(&ClientNetwork::input, this);
+//}
 char ClientNetwork::getCMD()
 {
-	/*char tempCmd; 
-	tempCmd = cmd; 
-	cmd = '0';*/ 
 	return cmd;
+}
+int ClientNetwork::getClientNum()
+{
+	return clientNum;
 }
 bool ClientNetwork::connect(TcpClient& socket)
 {
@@ -70,13 +85,13 @@ void ClientNetwork::input(TcpClient & socket)
 		sf::Packet packet;
 		std::string message;
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
-			message = "Left";
+			message = "L";
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
-			message = "Right";
+			message = "R";
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
-			message = "Up";
+			message = "U";
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
-			message = "Down";
+			message = "D";
 		packet << message;
 		if (message != "" && message != lastMessage)
 		socket.send(packet);
