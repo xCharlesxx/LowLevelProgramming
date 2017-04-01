@@ -19,13 +19,21 @@ public:
 	void client();
 	bool connect(TcpClient& socket);
 	void input(TcpClient& socket);
+	void sendPacket(sf::Packet packet);
 	void runInputThread(TcpClient & socket);
 	char getCMD(); 
 	int getClientNum(); 
+	int UpdateNumClients();
+	int requestNumClients(); 
+	bool checkGameStart();
 	std::string lastMessage; 
 private:
 	std::atomic<int> clientNum = 9; 
+	std::vector<sf::Packet> packets; 
+	std::mutex mtx; 
+	std::atomic<int> knownClients = 0;
 	char cmd = '0'; 
 	char newCmd = '0'; 
 	char prevCmd = '0';
+	bool gameStart = false; 
 };

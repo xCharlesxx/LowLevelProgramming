@@ -79,7 +79,7 @@ void connect(sf::TcpListener & tcp_listener, sf::SocketSelector & selector, TcpC
 	{
 		User* user = new User(); 
 		user->setPos(0); 
-		user->setID(userCount); 
+		user->setCMD("D"); 
 		users.push_back(*user); 
 		std::cout << "Client connected\n";
 		selector.add(client_ref);
@@ -107,13 +107,40 @@ void receiveMsg(TcpClients & tcp_clients, sf::SocketSelector & selector)
 		auto& sender_ref = *tcp_clients[i].get();
 		if (selector.isReady(sender_ref))
 		{
-			std::cout << "Message Received from " << i << std::endl;
 			sf::Packet packet;
 			tcp_clients[i].get()->receive(packet);
 			std::string string;
-			packet << i; 
+			std::string string1; 
+			std::string string2;
+			std::string string3;
 			packet >> string;
+			packet.clear(); 
+			if (string == "C")
+			{
+				std::cout << "Number of Clients request Recieved from " << i << std::endl;
+				packet << "C" << std::to_string(tcp_clients.size()); 
+			}
+			else if (string == "S")
+			{
+				std::cout << "Game Start request Recieved from " << i << std::endl;
+				packet << "S" << std::to_string(tcp_clients.size());
+			}
+			else
+			{
+				//Add recipient ID to message and forward
+				std::cout << "Message Received from " << i << std::endl;
+				//packet << string << std::to_string(i);
+				users[i].setCMD(string);
+				for (int x = 0; x < tcp_clients.size(); x++)
+				{
+					packet << users[x].getCMD();
+				}
+			}
 			std::cout << string << std::endl;
+			std::cout << "Broadcasting packet " << std::endl;
+			packet >> string >> string1 >> string2 >> string3; 
+			std::cout << string << string1 << string2 << string3 << std::endl;
+			//Broadcast to all users
 			for (int i = 0; i < tcp_clients.size(); i++)
 			{
 				tcp_clients[i].get()->send(packet);

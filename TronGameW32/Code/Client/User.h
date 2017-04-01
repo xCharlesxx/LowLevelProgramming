@@ -13,9 +13,9 @@ public:
 	virtual ~User() = default;
 	int getPos() { return pos; }
 	void setPos(int newPos) { pos = newPos; }
-	std::string getCMD() { return CMD; }
-	void setCMD(std::string _CMD) { CMD = _CMD; }
+	char getCMD() { return CMD; }
+	void setCMD(char _CMD) { CMD = _CMD; }
 private:
 	int pos;
-	std::string CMD;
+	char CMD;
 };

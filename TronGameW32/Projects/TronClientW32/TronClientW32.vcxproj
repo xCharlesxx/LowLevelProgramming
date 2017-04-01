@@ -90,6 +90,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Code\Client\ClientNetwork.h" />
+    <ClInclude Include="..\..\Code\Client\User.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\Resources\Start.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -87,6 +87,15 @@
   <ItemGroup>
     <ClInclude Include="..\..\Code\Game\TronGame.h" />
   </ItemGroup>
+  <ItemGroup>
+    <Font Include="..\..\Resources\04b_25__.ttf" />
+    <Font Include="..\..\Resources\Capture_it.ttf" />
+    <Font Include="..\..\Resources\Capture_it_2.ttf" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\Resources\Lobby.png" />
+    <Image Include="..\..\Resources\Start.png" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

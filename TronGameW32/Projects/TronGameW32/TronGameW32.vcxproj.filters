@@ -27,4 +27,23 @@
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <Font Include="..\..\Resources\Capture_it.ttf">
+      <Filter>Resource Files</Filter>
+    </Font>
+    <Font Include="..\..\Resources\04b_25__.ttf">
+      <Filter>Resource Files</Filter>
+    </Font>
+    <Font Include="..\..\Resources\Capture_it_2.ttf">
+      <Filter>Resource Files</Filter>
+    </Font>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\Resources\Start.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\..\Resources\Lobby.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
 </Project>

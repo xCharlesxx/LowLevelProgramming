@@ -1,5 +1,6 @@
 #include "ClientNetwork.h"
 #include <thread>
+#include <Windows.h>
 #include <SFML\Window\Keyboard.hpp>
 ClientNetwork::ClientNetwork()
 {
@@ -9,6 +10,7 @@ ClientNetwork::ClientNetwork()
 void ClientNetwork::client()
 {
 	TcpClient socket;
+	packets.reserve(10); 
 	if (!connect(socket))
 	{
 		return;
@@ -24,6 +26,7 @@ void ClientNetwork::client()
 			status = socket.receive(packet);
 			if (status == sf::Socket::Done)
 			{
+				std::string num;
 				std::string packetStore;
 				packet >> packetStore; 
 				if (packetStore != "")
@@ -35,6 +38,17 @@ void ClientNetwork::client()
 					case '2':
 					case '3':
 						clientNum = (packetStore[0] - 48);
+						break;
+					case 'C':
+						packet >> num;
+						knownClients = atoi(num.c_str());
+						num = ""; 
+						break;
+					case 'S':
+						packet >> num;
+						knownClients = atoi(num.c_str());
+						num = "";
+						gameStart = true; 
 						break;
 					default:
 						if (packetStore[1] == clientNum)
@@ -48,6 +62,8 @@ void ClientNetwork::client()
 					}
 				}
 			}
+			if (packets.size() > 10)
+				int msgboxID = MessageBox(NULL, (LPCWSTR)L"Packet Overload!", (LPCWSTR)L"MESSAGE", MB_ICONWARNING);
 		} while (status != sf::Socket::Disconnected);
 	});
 	return input(socket); 
@@ -62,9 +78,27 @@ char ClientNetwork::getCMD()
 {
 	return cmd;
 }
+int ClientNetwork::requestNumClients()
+{
+	return knownClients;
+}
+int ClientNetwork::UpdateNumClients()
+{
+	knownClients = 0;
+	sf::Packet packet;
+	const std::string msg = "C";
+	packet << msg;
+	sendPacket(packet);
+	while (knownClients == 0) {}
+	return knownClients;
+}
 int ClientNetwork::getClientNum()
 {
 	return clientNum;
+}
+bool ClientNetwork::checkGameStart()
+{
+	return gameStart; 
 }
 bool ClientNetwork::connect(TcpClient& socket)
 {
@@ -81,7 +115,7 @@ void ClientNetwork::input(TcpClient & socket)
 {
 	while (true)
 	{
-		auto& sender_ref = socket;
+		//auto& sender_ref = socket;
 		sf::Packet packet;
 		std::string message;
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
@@ -92,9 +126,29 @@ void ClientNetwork::input(TcpClient & socket)
 			message = "U";
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
 			message = "D";
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
+			message = "S"; 
 		packet << message;
 		if (message != "" && message != lastMessage)
-		socket.send(packet);
+		sendPacket(packet);
 		lastMessage = message; 
+		while (!mtx.try_lock()) {};
+		for (int i = 0; i < packets.size(); i++)
+			socket.send(packets[i]);
+		packets.clear(); 
+		mtx.unlock();
 	}
+}
+
+void ClientNetwork::sendPacket(sf::Packet packet)
+{
+	mtx.lock(); 
+	std::string contents; 
+	packet >> contents;
+	if (contents != "")
+	{
+		packet << contents;
+		packets.push_back(packet);
+	}
+	mtx.unlock(); 
 }
