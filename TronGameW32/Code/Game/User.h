@@ -13,9 +13,12 @@ public:
 	virtual ~User() = default;
 	int getPos() { return pos; }
 	void setPos(int newPos) { pos = newPos; }
-	char getCMD() { return CMD; }
-	void setCMD(char _CMD) { CMD = _CMD; }
+	bool getAlive() { return isAlive; }
+	void setAlive(bool _isDead) { isAlive = _isDead; }
+	std::string getCMD() { return CMD; }
+	void setCMD(std::string _CMD) { CMD = _CMD; }
 private:
 	int pos;
-	char CMD;
+	std::string CMD;
+	bool isAlive = false; 
 };

@@ -6,7 +6,7 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include <Server/User.h>
+#include <Game/User.h>
 #include <SFML\Network.hpp>
 
 constexpr int SERVER_TCP_PORT(53000);
@@ -19,9 +19,11 @@ std::vector<User> users;
 bool bindServerPort(sf::TcpListener& listener); 
 void listen(sf::TcpListener & tcp_listener, sf::SocketSelector & selector, TcpClients & tcp_clients);
 void connect(sf::TcpListener & tcp_listener, sf::SocketSelector & selector, TcpClients & tcp_clients);
-void receiveMsg(TcpClients & tcp_clients, sf::SocketSelector & selector);
+void disconnect(sf::TcpListener & tcp_listener, sf::SocketSelector & selector, TcpClients & tcp_clients);
+bool receiveMsg(TcpClients & tcp_clients, sf::SocketSelector & selector);
 void runServer(); 
 int userCount = 0; 
+int disconnectedUser = 9; 
 int main()
 {
 	std::cout << "Searching for life signs...\n";
@@ -65,7 +67,9 @@ void listen(sf::TcpListener & tcp_listener, sf::SocketSelector & selector, TcpCl
 			//message being recieved
 			else
 			{
-				receiveMsg(tcp_clients, selector);
+				//Recieve messages until disconnect
+				if(!receiveMsg(tcp_clients, selector))
+				disconnect(tcp_listener, selector, tcp_clients);
 			}
 		}
 	}
@@ -98,27 +102,42 @@ void connect(sf::TcpListener & tcp_listener, sf::SocketSelector & selector, TcpC
 	}
 }
 
-void receiveMsg(TcpClients & tcp_clients, sf::SocketSelector & selector)
+void disconnect(sf::TcpListener & tcp_listener, sf::SocketSelector & selector, TcpClients & tcp_clients)
 {
-	auto sender = std::make_unique<TcpClients>();
+	users[disconnectedUser].setCMD("X");
+	std::cout << "Client Removed\n";
+	tcp_clients.erase(std::remove(tcp_clients.begin(), tcp_clients.end(), tcp_clients[disconnectedUser]), tcp_clients.end());
+	userCount--;
+}
 
+
+bool receiveMsg(TcpClients & tcp_clients, sf::SocketSelector & selector)
+{
+	sf::Packet packet;
+	std::string move = "";
 	for (int i = 0; i < tcp_clients.size(); i++)
 	{
 		auto& sender_ref = *tcp_clients[i].get();
 		if (selector.isReady(sender_ref))
 		{
-			sf::Packet packet;
 			tcp_clients[i].get()->receive(packet);
 			std::string string;
-			std::string string1; 
+			std::string string1;
 			std::string string2;
 			std::string string3;
 			packet >> string;
-			packet.clear(); 
+			packet.clear();
+			if (string == "")
+			{
+				std::cout << "Client " << i;
+				std::cout << " Disconnected Unexpectedly " << std::endl;
+				disconnectedUser = i;
+				return false;
+			}
 			if (string == "C")
 			{
 				std::cout << "Number of Clients request Recieved from " << i << std::endl;
-				packet << "C" << std::to_string(tcp_clients.size()); 
+				packet << "C" << std::to_string(tcp_clients.size());
 			}
 			else if (string == "S")
 			{
@@ -127,26 +146,30 @@ void receiveMsg(TcpClients & tcp_clients, sf::SocketSelector & selector)
 			}
 			else
 			{
-				//Add recipient ID to message and forward
-				std::cout << "Message Received from " << i << std::endl;
-				//packet << string << std::to_string(i);
+				//Update CMD to message and forward
 				users[i].setCMD(string);
-				for (int x = 0; x < tcp_clients.size(); x++)
-				{
-					packet << users[x].getCMD();
-				}
+				//if (i == tcp_clients.size())
+				//{
+					for (int x = 0; x < tcp_clients.size(); x++)
+					{
+						move += users[x].getCMD();
+					}
+					packet << move;
+				//}
 			}
-			std::cout << string << std::endl;
-			std::cout << "Broadcasting packet " << std::endl;
-			packet >> string >> string1 >> string2 >> string3; 
-			std::cout << string << string1 << string2 << string3 << std::endl;
 			//Broadcast to all users
 			for (int i = 0; i < tcp_clients.size(); i++)
 			{
 				tcp_clients[i].get()->send(packet);
 			}
+			std::cout << "Message Received from " << i << std::endl;
+			std::cout << string << std::endl;
+			std::cout << "Broadcasting packet " << std::endl;
+			packet >> string >> string1 >> string2 >> string3;
+			std::cout << string << string1 << string2 << string3 << std::endl;
 		}
 	}
+	return true; 
 }
 
 void runServer()

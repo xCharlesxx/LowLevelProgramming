@@ -86,6 +86,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Code\Game\TronGame.h" />
+    <ClInclude Include="..\..\Code\Game\User.h" />
   </ItemGroup>
   <ItemGroup>
     <Font Include="..\..\Resources\04b_25__.ttf" />

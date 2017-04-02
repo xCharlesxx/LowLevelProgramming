@@ -21,7 +21,7 @@ public:
 	void input(TcpClient& socket);
 	void sendPacket(sf::Packet packet);
 	void runInputThread(TcpClient & socket);
-	char getCMD(); 
+	char getCMD(int i); 
 	int getClientNum(); 
 	int UpdateNumClients();
 	int requestNumClients(); 
@@ -32,8 +32,8 @@ private:
 	std::vector<sf::Packet> packets; 
 	std::mutex mtx; 
 	std::atomic<int> knownClients = 0;
-	char cmd = '0'; 
-	char newCmd = '0'; 
-	char prevCmd = '0';
+	std::string cmd = "0"; 
+	std::string newCmd = "0"; 
+	std::string prevCmd = "0";
 	bool gameStart = false; 
 };

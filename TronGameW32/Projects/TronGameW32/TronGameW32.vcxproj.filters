@@ -26,6 +26,9 @@
     <ClInclude Include="..\..\Code\Game\TronGame.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Code\Game\User.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Font Include="..\..\Resources\Capture_it.ttf">

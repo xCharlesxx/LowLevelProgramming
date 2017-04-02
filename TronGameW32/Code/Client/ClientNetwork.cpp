@@ -37,6 +37,7 @@ void ClientNetwork::client()
 					case '1':
 					case '2':
 					case '3':
+						//Convert from ascii
 						clientNum = (packetStore[0] - 48);
 						break;
 					case 'C':
@@ -51,8 +52,8 @@ void ClientNetwork::client()
 						gameStart = true; 
 						break;
 					default:
-						if (packetStore[1] == clientNum)
-							newCmd = packetStore[0];
+						//if (packetStore[clientNum] == clientNum)
+							newCmd = packetStore;
 						break;
 					}
 					if (prevCmd != newCmd)
@@ -74,9 +75,9 @@ void ClientNetwork::client()
 //	//std::thread input(input, socket);
 //	//std::thread input(&ClientNetwork::input, this);
 //}
-char ClientNetwork::getCMD()
+char ClientNetwork::getCMD(int i)
 {
-	return cmd;
+	return cmd[i];
 }
 int ClientNetwork::requestNumClients()
 {
@@ -113,30 +114,61 @@ bool ClientNetwork::connect(TcpClient& socket)
 
 void ClientNetwork::input(TcpClient & socket)
 {
-	while (true)
+	if (getClientNum() == 1)
 	{
-		//auto& sender_ref = socket;
-		sf::Packet packet;
-		std::string message;
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
-			message = "L";
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
-			message = "R";
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
-			message = "U";
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
-			message = "D";
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
-			message = "S"; 
-		packet << message;
-		if (message != "" && message != lastMessage)
-		sendPacket(packet);
-		lastMessage = message; 
-		while (!mtx.try_lock()) {};
-		for (int i = 0; i < packets.size(); i++)
-			socket.send(packets[i]);
-		packets.clear(); 
-		mtx.unlock();
+		while (true)
+		{
+			//auto& sender_ref = socket;
+			sf::Packet packet;
+			std::string message;
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
+				message = "L";
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
+				message = "R";
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
+				message = "U";
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
+				message = "D";
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
+				message = "S";
+			packet << message;
+			if (message != "" && message != lastMessage)
+				sendPacket(packet);
+			lastMessage = message;
+			while (!mtx.try_lock()) {};
+			for (int i = 0; i < packets.size(); i++)
+				socket.send(packets[i]);
+			packets.clear();
+			mtx.unlock();
+		}
+	}
+	else
+	{
+		while (true)
+		{
+			//auto& sender_ref = socket;
+			sf::Packet packet;
+			std::string message;
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+				message = "L";
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+				message = "R";
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
+				message = "U";
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
+				message = "D";
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
+				message = "S";
+			packet << message;
+			if (message != "" && message != lastMessage)
+				sendPacket(packet);
+			lastMessage = message;
+			while (!mtx.try_lock()) {};
+			for (int i = 0; i < packets.size(); i++)
+				socket.send(packets[i]);
+			packets.clear();
+			mtx.unlock();
+		}
 	}
 }
 
