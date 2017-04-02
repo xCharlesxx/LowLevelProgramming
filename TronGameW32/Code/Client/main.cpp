@@ -197,6 +197,13 @@ bool lobby(ClientNetwork& CN)
 }
 bool Game(ClientNetwork& CN, std::vector<sf::CircleShape> &grid, const int gridWidth, const int gridHeight, sf::Clock clock, std::vector<User> &users)
 {
+	std::string dead = "X";
+	sf::Packet packet; 
+	for (int i = 0; i < users.size(); i++)
+	{
+		if (!CN.heartBeatPlayer(i))
+			users[i].setAlive(false); 
+	}
 	while (!(clock.getElapsedTime().asSeconds() > 0.1)) {}
 	for (int i = 0; i < users.size(); i++)
 	{
@@ -208,17 +215,17 @@ bool Game(ClientNetwork& CN, std::vector<sf::CircleShape> &grid, const int gridW
 			case 'L':
 				if (pos % gridWidth == 0)
 				{
-					//tcp_clients.erase(std::remove(tcp_clients.begin(), tcp_clients.end(), tcp_clients[disconnectedUser]), tcp_clients.end());
-					//users.erase(std::remove(users.begin(), users.end(), users[i]), users.end()); 
 					PlayerDead(users, i);
-					//x += gridWidth;
+					packet << dead; 
+					dead = std::to_string(i);
+					packet << dead; 
+					CN.sendPacket(packet);
 					return true;
 				}
 				pos--;
 				users[i].setPos(pos);
 				if (grid[pos].getFillColor() == sf::Color::Red)
 				{
-					//users.erase(std::remove(users.begin(), users.end(), users[i]), users.end());
 					PlayerDead(users, i);
 					grid[pos].setFillColor(sf::Color::Cyan);
 					return true;

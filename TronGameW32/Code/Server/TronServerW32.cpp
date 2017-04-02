@@ -126,6 +126,7 @@ bool receiveMsg(TcpClients & tcp_clients, sf::SocketSelector & selector)
 			std::string string2;
 			std::string string3;
 			packet >> string;
+			packet >> string1;
 			packet.clear();
 			if (string == "")
 			{
@@ -143,6 +144,11 @@ bool receiveMsg(TcpClients & tcp_clients, sf::SocketSelector & selector)
 			{
 				std::cout << "Game Start request Recieved from " << i << std::endl;
 				packet << "S" << std::to_string(tcp_clients.size());
+			}
+			else if (string == "X")
+			{
+				std::cout << "Player Died Recieved From " << i << std::endl;
+				packet << string << string1; 
 			}
 			else
 			{

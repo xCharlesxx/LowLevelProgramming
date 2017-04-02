@@ -5,6 +5,7 @@
 #include <thread>
 #include <SFML\Network.hpp>
 #include <atomic>
+#include "Game\User.h"
 using TcpClient = sf::TcpSocket;
 using TcpClientPtr = std::unique_ptr<TcpClient>;
 using TcpClients = std::vector<TcpClientPtr>;
@@ -26,10 +27,12 @@ public:
 	int UpdateNumClients();
 	int requestNumClients(); 
 	bool checkGameStart();
+	bool heartBeatPlayer(int i); 
 	std::string lastMessage; 
 private:
 	std::atomic<int> clientNum = 9; 
 	std::vector<sf::Packet> packets; 
+	std::vector<User> users; 
 	std::mutex mtx; 
 	std::atomic<int> knownClients = 0;
 	std::string cmd = "0"; 

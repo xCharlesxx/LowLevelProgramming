@@ -15,6 +15,7 @@ void ClientNetwork::client()
 	{
 		return;
 	}
+	users.reserve(4); 
 
 	auto handle = std::async(std::launch::async, [&]
 	{
@@ -51,9 +52,14 @@ void ClientNetwork::client()
 						num = "";
 						gameStart = true; 
 						break;
+					case 'X':
+						packet >> num; 
+						users[atoi(num.c_str())].setAlive(false);
+						num = "";
+						gameStart = true;
+						break;
 					default:
-						//if (packetStore[clientNum] == clientNum)
-							newCmd = packetStore;
+						newCmd = packetStore;
 						break;
 					}
 					if (prevCmd != newCmd)
@@ -81,6 +87,13 @@ char ClientNetwork::getCMD(int i)
 }
 int ClientNetwork::requestNumClients()
 {
+	users.clear(); 
+	for (int i = 0; i < knownClients; i++)
+	{
+		User* user = new User();
+		user->setAlive(true);
+		users.push_back(*user); 
+	}
 	return knownClients;
 }
 int ClientNetwork::UpdateNumClients()
@@ -100,6 +113,10 @@ int ClientNetwork::getClientNum()
 bool ClientNetwork::checkGameStart()
 {
 	return gameStart; 
+}
+bool ClientNetwork::heartBeatPlayer(int i)
+{
+	return users[i].getAlive();
 }
 bool ClientNetwork::connect(TcpClient& socket)
 {
