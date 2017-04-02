@@ -59,14 +59,14 @@ void ClientNetwork::client()
 						gameStart = true;
 						break;
 					default:
-						newCmd = packetStore;
+						cmd = packetStore;
 						break;
 					}
-					if (prevCmd != newCmd)
+			/*		if (prevCmd != newCmd)
 					{
 						cmd = newCmd;
 						prevCmd = newCmd;
-					}
+					}*/
 				}
 			}
 			if (packets.size() > 10)
@@ -74,16 +74,15 @@ void ClientNetwork::client()
 		} while (status != sf::Socket::Disconnected);
 	});
 	return input(socket); 
-		//runInputThread(socket);
 }
-//void ClientNetwork::runInputThread(TcpClient & socket)
-//{
-//	//std::thread input(input, socket);
-//	//std::thread input(&ClientNetwork::input, this);
-//}
+
 char ClientNetwork::getCMD(int i)
 {
 	return cmd[i];
+}
+void ClientNetwork::clearCMD()
+{
+	cmd = "0000"; 
 }
 int ClientNetwork::requestNumClients()
 {

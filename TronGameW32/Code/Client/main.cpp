@@ -53,7 +53,7 @@ int main()
 	std::vector<User> users;
 	std::vector<sf::CircleShape> grid;
 	init(*CN, SS, JoinGame, players, 0, 0, grid, users);
-
+	sf::Packet packet;
 	while (window.isOpen())
 	{
 		window.clear();
@@ -106,6 +106,9 @@ int main()
 			break;
 		case SceneSelector::GAME:
 			Game(*CN, grid, 30, 30, clock, users);
+			CN->clearCMD(); 
+			if (CN->getClientNum() == 0)
+			CN->sendPacket(packet << "P");
 			for (int i = 0; i < grid.size(); i++)
 			{
 				window.draw(grid[i]);

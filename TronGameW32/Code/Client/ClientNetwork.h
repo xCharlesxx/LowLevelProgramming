@@ -21,8 +21,8 @@ public:
 	bool connect(TcpClient& socket);
 	void input(TcpClient& socket);
 	void sendPacket(sf::Packet packet);
-	void runInputThread(TcpClient & socket);
 	char getCMD(int i); 
+	void clearCMD(); 
 	int getClientNum(); 
 	int UpdateNumClients();
 	int requestNumClients(); 

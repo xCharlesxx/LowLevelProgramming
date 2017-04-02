@@ -150,6 +150,15 @@ bool receiveMsg(TcpClients & tcp_clients, sf::SocketSelector & selector)
 				std::cout << "Player Died Recieved From " << i << std::endl;
 				packet << string << string1; 
 			}
+			else if (string == "P")
+			{
+				//Poll for command
+				for (int x = 0; x < tcp_clients.size(); x++)
+				{
+					move += users[x].getCMD();
+				}
+				packet << move;
+			}
 			else
 			{
 				//Update CMD to message and forward
