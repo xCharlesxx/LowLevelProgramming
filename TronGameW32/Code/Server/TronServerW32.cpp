@@ -139,43 +139,50 @@ bool receiveMsg(TcpClients & tcp_clients, sf::SocketSelector & selector)
 			{
 				std::cout << "Number of Clients request Recieved from " << i << std::endl;
 				packet << "C" << std::to_string(tcp_clients.size());
+				//Broadcast to all users
+				for (int i = 0; i < tcp_clients.size(); i++)
+				{
+					tcp_clients[i].get()->send(packet);
+				}
 			}
 			else if (string == "S")
 			{
 				std::cout << "Game Start request Recieved from " << i << std::endl;
 				packet << "S" << std::to_string(tcp_clients.size());
+				//Broadcast to all users
+				for (int i = 0; i < tcp_clients.size(); i++)
+				{
+					tcp_clients[i].get()->send(packet);
+				}
 			}
 			else if (string == "X")
 			{
 				std::cout << "Player Died Recieved From " << i << std::endl;
 				packet << string << string1; 
+				//Broadcast to all users
+				for (int i = 0; i < tcp_clients.size(); i++)
+				{
+					tcp_clients[i].get()->send(packet);
+				}
 			}
-			else if (string == "P")
+			else if (string == "Ping")
 			{
-				//Poll for command
+				move = ""; 
 				for (int x = 0; x < tcp_clients.size(); x++)
 				{
 					move += users[x].getCMD();
 				}
 				packet << move;
+				//Broadcast to all users
+				for (int i = 0; i < tcp_clients.size(); i++)
+				{
+					tcp_clients[i].get()->send(packet);
+				}
 			}
 			else
 			{
-				//Update CMD to message and forward
+				//Update CMD to message
 				users[i].setCMD(string);
-				//if (i == tcp_clients.size())
-				//{
-					for (int x = 0; x < tcp_clients.size(); x++)
-					{
-						move += users[x].getCMD();
-					}
-					packet << move;
-				//}
-			}
-			//Broadcast to all users
-			for (int i = 0; i < tcp_clients.size(); i++)
-			{
-				tcp_clients[i].get()->send(packet);
 			}
 			std::cout << "Message Received from " << i << std::endl;
 			std::cout << string << std::endl;

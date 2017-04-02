@@ -25,7 +25,7 @@ enum class SceneSelector
 void PlayerDead(std::vector<User> &users, const int i);
 void waitForValidID(ClientNetwork& CN); 
 bool MainMenu(MainMenuSelection &MMS, sf::Sprite &JoinGame);
-bool Game(ClientNetwork& CN, std::vector<sf::CircleShape>& grid, const int gridWidth, const int gridHeight, sf::Clock clock, std::vector<User> &users);
+sf::Packet Game(ClientNetwork& CN, std::vector<sf::CircleShape>& grid, const int gridWidth, const int gridHeight, sf::Clock clock, std::vector<User> &users);
 bool lobby(ClientNetwork& CN);
 void init(ClientNetwork& CN, SceneSelector &SS, sf::Sprite &JoinGame, std::vector<sf::CircleShape> &players, int window_x, int window_y, std::vector<sf::CircleShape> &grid, std::vector<User> &users);
 int main()
@@ -105,10 +105,12 @@ int main()
 			window.draw(JoinGame);
 			break;
 		case SceneSelector::GAME:
-			Game(*CN, grid, 30, 30, clock, users);
-			CN->clearCMD(); 
+			packet = Game(*CN, grid, 30, 30, clock, users); 
+			if (packet.getDataSize() != 0)
+			CN->sendPacket(packet); 
 			if (CN->getClientNum() == 0)
-			CN->sendPacket(packet << "P");
+			CN->sendPacket(packet << "Ping");
+			CN->clearCMD();
 			for (int i = 0; i < grid.size(); i++)
 			{
 				window.draw(grid[i]);
@@ -198,7 +200,7 @@ bool lobby(ClientNetwork& CN)
 {
 	return CN.checkGameStart();
 }
-bool Game(ClientNetwork& CN, std::vector<sf::CircleShape> &grid, const int gridWidth, const int gridHeight, sf::Clock clock, std::vector<User> &users)
+sf::Packet Game(ClientNetwork& CN, std::vector<sf::CircleShape> &grid, const int gridWidth, const int gridHeight, sf::Clock clock, std::vector<User> &users)
 {
 	std::string dead = "X";
 	sf::Packet packet; 
@@ -222,9 +224,8 @@ bool Game(ClientNetwork& CN, std::vector<sf::CircleShape> &grid, const int gridW
 					packet << dead; 
 					dead = std::to_string(i);
 					packet << dead; 
-					CN.sendPacket(packet);
 					grid[pos].setFillColor(sf::Color::Cyan);
-					return true;
+					return packet;
 				}
 				pos--;
 				users[i].setPos(pos);
@@ -234,9 +235,8 @@ bool Game(ClientNetwork& CN, std::vector<sf::CircleShape> &grid, const int gridW
 					packet << dead;
 					dead = std::to_string(i);
 					packet << dead;
-					CN.sendPacket(packet);
 					grid[pos].setFillColor(sf::Color::Cyan);
-					return true;
+					return packet;
 				}
 				else
 					grid[pos].setFillColor(sf::Color::Red);
@@ -250,10 +250,9 @@ bool Game(ClientNetwork& CN, std::vector<sf::CircleShape> &grid, const int gridW
 					packet << dead;
 					dead = std::to_string(i);
 					packet << dead;
-					CN.sendPacket(packet);
 					pos--;
 					grid[pos].setFillColor(sf::Color::Cyan);
-					return true;
+					return packet;
 				}
 				if (grid[pos].getFillColor() == sf::Color::Red)
 				{
@@ -261,9 +260,8 @@ bool Game(ClientNetwork& CN, std::vector<sf::CircleShape> &grid, const int gridW
 					packet << dead;
 					dead = std::to_string(i);
 					packet << dead;
-					CN.sendPacket(packet);
 					grid[pos].setFillColor(sf::Color::Cyan);
-					return true;
+					return packet;
 				}
 				else
 					grid[pos].setFillColor(sf::Color::Red);
@@ -276,20 +274,18 @@ bool Game(ClientNetwork& CN, std::vector<sf::CircleShape> &grid, const int gridW
 					packet << dead;
 					dead = std::to_string(i);
 					packet << dead;
-					CN.sendPacket(packet);
 					PlayerDead(users, i);
 					grid[pos += gridWidth].setFillColor(sf::Color::Cyan);
-					return true;
+					return packet;
 				}
 				if (grid[pos].getFillColor() == sf::Color::Red)
 				{
 					packet << dead;
 					dead = std::to_string(i);
 					packet << dead;
-					CN.sendPacket(packet);
 					PlayerDead(users, i);
 					grid[pos].setFillColor(sf::Color::Cyan);
-					return true;
+					return packet;
 				}
 				else
 					grid[pos].setFillColor(sf::Color::Red);
@@ -302,20 +298,18 @@ bool Game(ClientNetwork& CN, std::vector<sf::CircleShape> &grid, const int gridW
 					packet << dead;
 					dead = std::to_string(i);
 					packet << dead;
-					CN.sendPacket(packet);
 					PlayerDead(users, i);
 					grid[pos -= gridWidth].setFillColor(sf::Color::Cyan);
-					return true;
+					return packet;
 				}
 				if (grid[pos].getFillColor() == sf::Color::Red)
 				{
 					packet << dead;
 					dead = std::to_string(i);
 					packet << dead;
-					CN.sendPacket(packet);
 					PlayerDead(users, i);
 					grid[pos].setFillColor(sf::Color::Cyan);
-					return true;
+					return packet;
 				}
 				else
 					grid[pos].setFillColor(sf::Color::Red);
@@ -323,7 +317,7 @@ bool Game(ClientNetwork& CN, std::vector<sf::CircleShape> &grid, const int gridW
 			}
 		}
 	}
-		return false; 
+		return packet; 
 }
 
 void PlayerDead(std::vector<User> &users, const int i)
