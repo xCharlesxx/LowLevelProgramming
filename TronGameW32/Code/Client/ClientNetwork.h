@@ -35,8 +35,8 @@ private:
 	std::vector<User> users; 
 	std::mutex mtx; 
 	std::atomic<int> knownClients = 0;
-	std::string cmd = "0"; 
-	std::string newCmd = "0"; 
-	std::string prevCmd = "0";
+	std::string cmd = "0000"; 
+	std::string newCmd = "0000"; 
+	std::string prevCmd = "0000";
 	bool gameStart = false; 
 };
