@@ -26,19 +26,20 @@ void PlayerDead(std::vector<User> &users, const int i);
 void waitForValidID(ClientNetwork& CN); 
 bool MainMenu(MainMenuSelection &MMS, sf::Sprite &JoinGame);
 sf::Packet Game(ClientNetwork& CN, std::vector<sf::CircleShape>& grid, const int gridWidth, const int gridHeight, sf::Clock clock, std::vector<User> &users);
-bool lobby(ClientNetwork& CN);
+int lobby(ClientNetwork& CN);
 void init(ClientNetwork& CN, SceneSelector &SS, sf::Sprite &JoinGame, std::vector<sf::CircleShape> &players, int window_x, int window_y, std::vector<sf::CircleShape> &grid, std::vector<User> &users);
 sf::Color blankSpace = sf::Color::Green;
 sf::Color trailColour = sf::Color::Red;
 sf::Color deathColour = sf::Color::Cyan;
 int main()
 {
-	sf::Texture t_Start;
+	//sf::Texture t_Start;
 	sf::Texture t_Lobby;
-	if (!t_Start.loadFromFile("..\\..\\Resources\\Start.png"))
-	{
-		std::cout << "NO";
-	}
+	//if (!t_Start.loadFromFile("..\\..\\Resources\\Start.png"))
+	//{
+	//	std::cout << "NO";
+	//}
+	
 	if (!t_Lobby.loadFromFile("..\\..\\Resources\\Lobby.png"))
 	{
 		std::cout << "NO";
@@ -51,37 +52,34 @@ int main()
 	std::vector<sf::CircleShape> players;
 	SceneSelector SS; 
 	SS = SceneSelector::MENU; 
-	JoinGame.setTexture(t_Start);
+	JoinGame.setTexture(t_Lobby);
 	ClientNetwork* CN = new ClientNetwork();
 	std::vector<User> users;
 	std::vector<sf::CircleShape> grid;
-	init(*CN, SS, JoinGame, players, 0, 0, grid, users);
+	//init(*CN, SS, JoinGame, players, 0, 0, grid, users);
+	SS = SceneSelector::LOBBY;
+	new std::thread(&ClientNetwork::client, CN);
+	waitForValidID(*CN);
+	JoinGame.setTexture(t_Lobby);
+	init(*CN, SS, JoinGame, players, window.getSize().x, window.getSize().y, grid, users);
+	CN->UpdateNumClients();
 	sf::Packet packet;
 	while (window.isOpen())
 	{
+
+		sf::Event event;
+		while (window.pollEvent(event))
+		{
+			if (event.type == sf::Event::Closed)
+				window.close();
+
+
 		window.clear();
 		switch (SS)
 		{
 		case SceneSelector::INVALID:
 			break;
 		case SceneSelector::NONE:
-			break;
-		case SceneSelector::MENU:
-			if (MainMenu(MMS, JoinGame) == true)
-			{
-				if (MMS == MainMenuSelection::QUIT)
-				{
-					window.close();
-					break; 
-				}
-				SS = SceneSelector::LOBBY;
-				new std::thread(&ClientNetwork::client, CN);
-				waitForValidID(*CN);
-				JoinGame.setTexture(t_Lobby);
-				init(*CN, SS, JoinGame, players, window.getSize().x, window.getSize().y, grid, users);
-				CN->UpdateNumClients();
-			}
-			window.draw(JoinGame);
 			break;
 		case SceneSelector::LOBBY:
 			//Check lobby contents every two seconds
@@ -94,12 +92,16 @@ int main()
 				clock.restart();
 			}
 			//Check if game has been started
-			if (lobby(*CN) == true)
+			if (lobby(*CN) == 1)
 			{
 				SS = SceneSelector::GAME;
 				CN->requestNumClients();
-				JoinGame.setTexture(t_Lobby);
 				init(*CN, SS, JoinGame, players, 0, 0, grid, users);
+			}
+			else if (lobby(*CN) == 2)
+			{
+				CN->disconnect(); 
+				window.close(); 
 			}
 			for (int i = 0; i < 4; i++)
 			{
@@ -166,9 +168,27 @@ void init(ClientNetwork& CN, SceneSelector &SS, sf::Sprite &JoinGame, std::vecto
 			User* user = new User();
 			user->setPos(i * (gridWidth*gridHeight / 4));
 			user->setAlive(true); 
+			switch (i)
+			{
+			case 0:
+				user->setColour(sf::Color::Red);
+				break;
+			case 1:
+				user->setColour(sf::Color::Black);
+				break;
+			case 2:
+				user->setColour(sf::Color::Magenta);
+				break;
+			case 3:
+				user->setColour(sf::Color::Yellow);
+				break;
+			default:
+				break;
+			}
 			users.push_back(*user);
-			grid[users[i].getPos()].setFillColor(sf::Color::Blue);
+			grid[users[i].getPos()].setFillColor(users[i].getColour());
 		}
+		
 		break;
 	default:
 		break;
@@ -199,9 +219,14 @@ bool MainMenu(MainMenuSelection &MMS, sf::Sprite &JoinGame)
 		return true; 
 	return false; 
 }
-bool lobby(ClientNetwork& CN)
+int lobby(ClientNetwork& CN)
 {
-	return CN.checkGameStart();
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
+		return 2;
+	if (CN.checkGameStart() == true)
+		return 1; 
+
+	return 0;
 }
 sf::Packet Game(ClientNetwork& CN, std::vector<sf::CircleShape> &grid, const int gridWidth, const int gridHeight, sf::Clock clock, std::vector<User> &users)
 {
@@ -218,15 +243,14 @@ sf::Packet Game(ClientNetwork& CN, std::vector<sf::CircleShape> &grid, const int
 		if (users[i].getAlive() == true)
 		{
 			int pos = users[i].getPos();
+			packet << dead;
+			dead = std::to_string(i);
+			packet << dead;
 			switch (CN.getCMD(i))
 			{
 			case 'L':
 				if (pos % gridWidth == 0)
 				{
-					PlayerDead(users, i);
-					packet << dead; 
-					dead = std::to_string(i);
-					packet << dead; 
 					grid[pos].setFillColor(deathColour);
 					return packet;
 				}
@@ -234,92 +258,65 @@ sf::Packet Game(ClientNetwork& CN, std::vector<sf::CircleShape> &grid, const int
 				users[i].setPos(pos);
 				if (grid[pos].getFillColor() != blankSpace)
 				{
-					PlayerDead(users, i);
-					packet << dead;
-					dead = std::to_string(i);
-					packet << dead;
 					grid[pos].setFillColor(deathColour);
 					return packet;
 				}
 				else
-					grid[pos].setFillColor(trailColour);
+					grid[pos].setFillColor(users[i].getColour());
 				break;
 			case 'R':
 				pos++;
 				users[i].setPos(pos);
 				if (pos % gridWidth == 0)
 				{
-					PlayerDead(users, i);
-					packet << dead;
-					dead = std::to_string(i);
-					packet << dead;
 					pos--;
 					grid[pos].setFillColor(deathColour);
 					return packet;
 				}
 				if (grid[pos].getFillColor() != blankSpace)
 				{
-					PlayerDead(users, i);
-					packet << dead;
-					dead = std::to_string(i);
-					packet << dead;
 					grid[pos].setFillColor(deathColour);
 					return packet;
 				}
 				else
-					grid[pos].setFillColor(trailColour);
+					grid[pos].setFillColor(users[i].getColour());
 				break;
 			case 'U':
 				pos -= gridWidth;
 				users[i].setPos(pos);
 				if (pos < 0)
 				{
-					packet << dead;
-					dead = std::to_string(i);
-					packet << dead;
-					PlayerDead(users, i);
 					grid[pos += gridWidth].setFillColor(deathColour);
 					return packet;
 				}
 				if (grid[pos].getFillColor() != blankSpace)
 				{
-					packet << dead;
-					dead = std::to_string(i);
-					packet << dead;
-					PlayerDead(users, i);
 					grid[pos].setFillColor(deathColour);
 					return packet;
 				}
 				else
-					grid[pos].setFillColor(trailColour);
+					grid[pos].setFillColor(users[i].getColour());
 				break;
 			case 'D':
 				pos += gridWidth;
 				users[i].setPos(pos);
 				if (pos >= (gridWidth*gridHeight))
 				{
-					packet << dead;
-					dead = std::to_string(i);
-					packet << dead;
-					PlayerDead(users, i);
 					grid[pos -= gridWidth].setFillColor(deathColour);
 					return packet;
 				}
 				if (grid[pos].getFillColor() != blankSpace)
 				{
-					packet << dead;
-					dead = std::to_string(i);
-					packet << dead;
-					PlayerDead(users, i);
 					grid[pos].setFillColor(deathColour);
 					return packet;
 				}
 				else
-					grid[pos].setFillColor(trailColour);
+					grid[pos].setFillColor(users[i].getColour());
 				break;
 			}
 		}
 	}
+		packet.clear(); 
 		return packet; 
 }
 
@@ -343,12 +340,8 @@ void waitForValidID(ClientNetwork& CN)
 
 //while (stayOpen)
 //{
-/*sf::Event event;
-while (window.pollEvent(event))
-{
-if (event.type == sf::Event::Closed)
-window.close();
-}*/
+
+//}
 
 //while (window.isOpen())
 //{
@@ -423,3 +416,21 @@ window.close();
 //	}
 //	window.display();
 //}
+
+		//case SceneSelector::MENU:
+		//	if (MainMenu(MMS, JoinGame) == true)
+		//	{
+		//		if (MMS == MainMenuSelection::QUIT)
+		//		{
+		//			window.close();
+		//			break;
+		//		}
+		//		SS = SceneSelector::LOBBY;
+		//		new std::thread(&ClientNetwork::client, CN);
+		//		waitForValidID(*CN);
+		//		JoinGame.setTexture(t_Lobby);
+		//		init(*CN, SS, JoinGame, players, window.getSize().x, window.getSize().y, grid, users);
+		//		CN->UpdateNumClients();
+		//	}
+		//	window.draw(JoinGame);
+		//	break;

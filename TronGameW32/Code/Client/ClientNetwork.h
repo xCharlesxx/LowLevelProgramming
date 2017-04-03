@@ -19,6 +19,7 @@ public:
 	virtual ~ClientNetwork() = default;
 	void client();
 	bool connect(TcpClient& socket);
+	void disconnect(); 
 	void input(TcpClient& socket);
 	void sendPacket(sf::Packet packet);
 	char getCMD(int i); 
@@ -39,4 +40,5 @@ private:
 	std::string newCmd = "0000"; 
 	std::string prevCmd = "0000";
 	bool gameStart = false; 
+	bool hasDisconnected = false; 
 };

@@ -19,7 +19,7 @@ std::vector<User> users;
 bool bindServerPort(sf::TcpListener& listener); 
 void listen(sf::TcpListener & tcp_listener, sf::SocketSelector & selector, TcpClients & tcp_clients);
 void connect(sf::TcpListener & tcp_listener, sf::SocketSelector & selector, TcpClients & tcp_clients);
-void disconnect(sf::TcpListener & tcp_listener, sf::SocketSelector & selector, TcpClients & tcp_clients);
+void disconnect(TcpClients & tcp_clients);
 bool receiveMsg(TcpClients & tcp_clients, sf::SocketSelector & selector);
 void runServer(); 
 int userCount = 0; 
@@ -69,7 +69,7 @@ void listen(sf::TcpListener & tcp_listener, sf::SocketSelector & selector, TcpCl
 			{
 				//Recieve messages until disconnect
 				if(!receiveMsg(tcp_clients, selector))
-				disconnect(tcp_listener, selector, tcp_clients);
+				disconnect(tcp_clients);
 			}
 		}
 	}
@@ -102,14 +102,13 @@ void connect(sf::TcpListener & tcp_listener, sf::SocketSelector & selector, TcpC
 	}
 }
 
-void disconnect(sf::TcpListener & tcp_listener, sf::SocketSelector & selector, TcpClients & tcp_clients)
+void disconnect(TcpClients & tcp_clients)
 {
 	users[disconnectedUser].setCMD("X");
 	std::cout << "Client Removed\n";
 	tcp_clients.erase(std::remove(tcp_clients.begin(), tcp_clients.end(), tcp_clients[disconnectedUser]), tcp_clients.end());
 	userCount--;
 }
-
 
 bool receiveMsg(TcpClients & tcp_clients, sf::SocketSelector & selector)
 {
@@ -135,8 +134,9 @@ bool receiveMsg(TcpClients & tcp_clients, sf::SocketSelector & selector)
 				disconnectedUser = i;
 				return false;
 			}
-			if (string == "C")
+			else switch (string[0])
 			{
+			case 'C': 
 				std::cout << "Number of Clients request Recieved from " << i << std::endl;
 				packet << "C" << std::to_string(tcp_clients.size());
 				//Broadcast to all users
@@ -144,9 +144,8 @@ bool receiveMsg(TcpClients & tcp_clients, sf::SocketSelector & selector)
 				{
 					tcp_clients[i].get()->send(packet);
 				}
-			}
-			else if (string == "S")
-			{
+				break;
+			case 'S':
 				std::cout << "Game Start request Recieved from " << i << std::endl;
 				packet << "S" << std::to_string(tcp_clients.size());
 				//Broadcast to all users
@@ -154,20 +153,26 @@ bool receiveMsg(TcpClients & tcp_clients, sf::SocketSelector & selector)
 				{
 					tcp_clients[i].get()->send(packet);
 				}
-			}
-			else if (string == "X")
-			{
+				break;
+			case 'X':
 				std::cout << "Player Died Recieved From " << i << std::endl;
-				packet << string << string1; 
+				packet << string << string1;
+				users[atoi(string1.c_str())].setCMD("X");
+				break;
+			case 'K':
+				std::cout << "Client " << i;
+				std::cout << " Disconnected Gracefully " << std::endl;
+				disconnectedUser = i; 
+				disconnect(tcp_clients);
+				packet << "C" << std::to_string(tcp_clients.size());
 				//Broadcast to all users
 				for (int i = 0; i < tcp_clients.size(); i++)
 				{
 					tcp_clients[i].get()->send(packet);
 				}
-			}
-			else if (string == "Ping")
-			{
-				move = ""; 
+				break;
+			case 'P':
+				move = "";
 				for (int x = 0; x < tcp_clients.size(); x++)
 				{
 					move += users[x].getCMD();
@@ -178,11 +183,11 @@ bool receiveMsg(TcpClients & tcp_clients, sf::SocketSelector & selector)
 				{
 					tcp_clients[i].get()->send(packet);
 				}
-			}
-			else
-			{
+				break;
+			default:
 				//Update CMD to message
 				users[i].setCMD(string);
+				break;
 			}
 			std::cout << "Message Received from " << i << std::endl;
 			std::cout << string << std::endl;

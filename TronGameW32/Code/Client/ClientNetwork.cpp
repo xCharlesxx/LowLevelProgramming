@@ -62,11 +62,8 @@ void ClientNetwork::client()
 						cmd = packetStore;
 						break;
 					}
-			/*		if (prevCmd != newCmd)
-					{
-						cmd = newCmd;
-						prevCmd = newCmd;
-					}*/
+					if (hasDisconnected == true)
+						socket.disconnect();
 				}
 			}
 			if (packets.size() > 10)
@@ -125,9 +122,17 @@ bool ClientNetwork::connect(TcpClient& socket)
 	{
 		return false;
 	}
+	hasDisconnected = false; 
 	return true;
 }
-
+void ClientNetwork::disconnect()
+{
+	sf::Packet packet;
+	std::string temp = "K"; 
+	packet << temp; 
+	sendPacket(packet); 
+	hasDisconnected = true; 
+}
 void ClientNetwork::input(TcpClient & socket)
 {
 	if (getClientNum() == 1)

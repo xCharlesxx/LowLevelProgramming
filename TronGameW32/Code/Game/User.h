@@ -3,6 +3,7 @@
 #include <SFML\Network.hpp>
 #include <iostream>
 #include <memory>
+#include <SFML/Graphics.hpp>
 
 using TcpClient = sf::TcpSocket;
 using TcpClientPtr = std::unique_ptr<TcpClient>;
@@ -17,8 +18,11 @@ public:
 	void setAlive(bool _isDead) { isAlive = _isDead; }
 	std::string getCMD() { return CMD; }
 	void setCMD(std::string _CMD) { CMD = _CMD; }
+	sf::Color getColour() { return trailColour; }
+	void setColour(sf::Color colour) { trailColour = colour; }
 private:
 	int pos;
 	std::string CMD;
 	bool isAlive = false; 
+	sf::Color trailColour; 
 };
