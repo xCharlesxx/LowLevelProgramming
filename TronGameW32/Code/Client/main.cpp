@@ -28,6 +28,9 @@ bool MainMenu(MainMenuSelection &MMS, sf::Sprite &JoinGame);
 sf::Packet Game(ClientNetwork& CN, std::vector<sf::CircleShape>& grid, const int gridWidth, const int gridHeight, sf::Clock clock, std::vector<User> &users);
 bool lobby(ClientNetwork& CN);
 void init(ClientNetwork& CN, SceneSelector &SS, sf::Sprite &JoinGame, std::vector<sf::CircleShape> &players, int window_x, int window_y, std::vector<sf::CircleShape> &grid, std::vector<User> &users);
+sf::Color blankSpace = sf::Color::Green;
+sf::Color trailColour = sf::Color::Red;
+sf::Color deathColour = sf::Color::Cyan;
 int main()
 {
 	sf::Texture t_Start;
@@ -224,22 +227,22 @@ sf::Packet Game(ClientNetwork& CN, std::vector<sf::CircleShape> &grid, const int
 					packet << dead; 
 					dead = std::to_string(i);
 					packet << dead; 
-					grid[pos].setFillColor(sf::Color::Cyan);
+					grid[pos].setFillColor(deathColour);
 					return packet;
 				}
 				pos--;
 				users[i].setPos(pos);
-				if (grid[pos].getFillColor() == sf::Color::Red)
+				if (grid[pos].getFillColor() != blankSpace)
 				{
 					PlayerDead(users, i);
 					packet << dead;
 					dead = std::to_string(i);
 					packet << dead;
-					grid[pos].setFillColor(sf::Color::Cyan);
+					grid[pos].setFillColor(deathColour);
 					return packet;
 				}
 				else
-					grid[pos].setFillColor(sf::Color::Red);
+					grid[pos].setFillColor(trailColour);
 				break;
 			case 'R':
 				pos++;
@@ -251,20 +254,20 @@ sf::Packet Game(ClientNetwork& CN, std::vector<sf::CircleShape> &grid, const int
 					dead = std::to_string(i);
 					packet << dead;
 					pos--;
-					grid[pos].setFillColor(sf::Color::Cyan);
+					grid[pos].setFillColor(deathColour);
 					return packet;
 				}
-				if (grid[pos].getFillColor() == sf::Color::Red)
+				if (grid[pos].getFillColor() != blankSpace)
 				{
 					PlayerDead(users, i);
 					packet << dead;
 					dead = std::to_string(i);
 					packet << dead;
-					grid[pos].setFillColor(sf::Color::Cyan);
+					grid[pos].setFillColor(deathColour);
 					return packet;
 				}
 				else
-					grid[pos].setFillColor(sf::Color::Red);
+					grid[pos].setFillColor(trailColour);
 				break;
 			case 'U':
 				pos -= gridWidth;
@@ -275,20 +278,20 @@ sf::Packet Game(ClientNetwork& CN, std::vector<sf::CircleShape> &grid, const int
 					dead = std::to_string(i);
 					packet << dead;
 					PlayerDead(users, i);
-					grid[pos += gridWidth].setFillColor(sf::Color::Cyan);
+					grid[pos += gridWidth].setFillColor(deathColour);
 					return packet;
 				}
-				if (grid[pos].getFillColor() == sf::Color::Red)
+				if (grid[pos].getFillColor() != blankSpace)
 				{
 					packet << dead;
 					dead = std::to_string(i);
 					packet << dead;
 					PlayerDead(users, i);
-					grid[pos].setFillColor(sf::Color::Cyan);
+					grid[pos].setFillColor(deathColour);
 					return packet;
 				}
 				else
-					grid[pos].setFillColor(sf::Color::Red);
+					grid[pos].setFillColor(trailColour);
 				break;
 			case 'D':
 				pos += gridWidth;
@@ -299,20 +302,20 @@ sf::Packet Game(ClientNetwork& CN, std::vector<sf::CircleShape> &grid, const int
 					dead = std::to_string(i);
 					packet << dead;
 					PlayerDead(users, i);
-					grid[pos -= gridWidth].setFillColor(sf::Color::Cyan);
+					grid[pos -= gridWidth].setFillColor(deathColour);
 					return packet;
 				}
-				if (grid[pos].getFillColor() == sf::Color::Red)
+				if (grid[pos].getFillColor() != blankSpace)
 				{
 					packet << dead;
 					dead = std::to_string(i);
 					packet << dead;
 					PlayerDead(users, i);
-					grid[pos].setFillColor(sf::Color::Cyan);
+					grid[pos].setFillColor(deathColour);
 					return packet;
 				}
 				else
-					grid[pos].setFillColor(sf::Color::Red);
+					grid[pos].setFillColor(trailColour);
 				break;
 			}
 		}
