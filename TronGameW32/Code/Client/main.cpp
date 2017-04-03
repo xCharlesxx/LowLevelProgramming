@@ -72,8 +72,7 @@ int main()
 		{
 			if (event.type == sf::Event::Closed)
 				window.close();
-
-
+		}
 		window.clear();
 		switch (SS)
 		{
