@@ -71,6 +71,11 @@ void ClientNetwork::client()
 						cmd = packetStore;
 						break;
 					}
+					for (int i = 0; i < users.size(); i++)
+					{
+						if (packetStore[i] == 'X')
+							users[i].setAlive(false); 
+					}
 					if (hasDisconnected == true)
 						socket.disconnect();
 				}
