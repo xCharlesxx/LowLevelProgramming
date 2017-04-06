@@ -21,6 +21,7 @@ void init(ClientNetwork& CN, SceneSelector &SS, sf::Sprite &JoinGame, std::vecto
 sf::Color blankSpace = sf::Color::Black;
 sf::Color trailColour = sf::Color::Red;
 sf::Color deathColour = sf::Color::Cyan;
+sf::Color winnerColour;
 int main()
 {
 	sf::Texture t_Lobby;
@@ -94,7 +95,13 @@ int main()
 				init(*CN, SS, JoinGame, players, window.getSize().x, window.getSize().y, grid, users);
 				SS = SceneSelector::LOBBY;
 				clock.restart();
-				while (clock.getElapsedTime().asSeconds() < 0.2) {}
+				for (int i = 0; i < grid.size(); i++)
+				{
+					grid[i].setFillColor[winnerColour];
+					window.draw(grid[i]);
+					while (clock.getElapsedTime().asSeconds() < 0.1){}
+					clock.restart(); 
+				}
 				break; 
 			}
 				 
@@ -197,6 +204,12 @@ sf::Packet Game(ClientNetwork& CN, std::vector<sf::CircleShape> &grid, const int
 			users[i].setAlive(false); 
 		if (users[i].getAlive() == false)
 			usersDead++; 
+	}
+	if (usersDead == users.size() - 1)
+	{
+		for (int i = 0; i < users.size(); i++)
+			if (users[i].getAlive() == true)
+				winnerColour = users[i].getColour();
 	}
 	if (usersDead == users.size())
 	{
