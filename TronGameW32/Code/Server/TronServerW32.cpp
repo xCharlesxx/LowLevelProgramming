@@ -147,7 +147,6 @@ bool receiveMsg(TcpClients & tcp_clients, sf::SocketSelector & selector)
 				break;
 			case 'X':
 				std::cout << "Player Died Recieved From " << i << std::endl;
-				packet << string << string1;
 				users[atoi(string1.c_str())].setCMD("X");
 				break;
 			case 'K':

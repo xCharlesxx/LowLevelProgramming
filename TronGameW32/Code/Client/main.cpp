@@ -60,7 +60,7 @@ int main()
 		{
 		case SceneSelector::LOBBY:
 			//Check lobby contents every two seconds
-			if (clock.getElapsedTime().asSeconds() > 2)
+			if (clock.getElapsedTime().asSeconds() > 1)
 			{
 				for (int i = 0; i < CN->requestNumClients(); i++)
 				{
@@ -97,7 +97,7 @@ int main()
 				clock.restart();
 				for (int i = 0; i < grid.size(); i++)
 				{
-					grid[i].setFillColor[winnerColour];
+					grid[i].setFillColor(winnerColour);
 					window.draw(grid[i]);
 					while (clock.getElapsedTime().asSeconds() < 0.1){}
 					clock.restart(); 
@@ -187,7 +187,7 @@ void init(ClientNetwork& CN, SceneSelector &SS, sf::Sprite &JoinGame, std::vecto
 
 int lobby(ClientNetwork& CN)
 {
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape) || !sf::Joystick::isButtonPressed(CN.getClientNum(), 1))
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape) || sf::Joystick::isButtonPressed(CN.getClientNum(), 1))
 		return 2;
 	if (CN.checkGameStart() == true)
 		return 1; 
@@ -233,6 +233,7 @@ sf::Packet Game(ClientNetwork& CN, std::vector<sf::CircleShape> &grid, const int
 				if (pos % gridWidth == 0)
 				{
 					grid[pos].setFillColor(deathColour);
+					users[i].setAlive(false);
 					return packet;
 				}
 				pos--;
@@ -240,6 +241,7 @@ sf::Packet Game(ClientNetwork& CN, std::vector<sf::CircleShape> &grid, const int
 				if (grid[pos].getFillColor() != blankSpace)
 				{
 					grid[pos].setFillColor(deathColour);
+					users[i].setAlive(false);
 					return packet;
 				}
 				else
@@ -252,11 +254,13 @@ sf::Packet Game(ClientNetwork& CN, std::vector<sf::CircleShape> &grid, const int
 				{
 					pos--;
 					grid[pos].setFillColor(deathColour);
+					users[i].setAlive(false);
 					return packet;
 				}
 				if (grid[pos].getFillColor() != blankSpace)
 				{
 					grid[pos].setFillColor(deathColour);
+					users[i].setAlive(false);
 					return packet;
 				}
 				else
@@ -268,11 +272,13 @@ sf::Packet Game(ClientNetwork& CN, std::vector<sf::CircleShape> &grid, const int
 				if (pos < 0)
 				{
 					grid[pos += gridWidth].setFillColor(deathColour);
+					users[i].setAlive(false);
 					return packet;
 				}
 				if (grid[pos].getFillColor() != blankSpace)
 				{
 					grid[pos].setFillColor(deathColour);
+					users[i].setAlive(false);
 					return packet;
 				}
 				else
@@ -284,11 +290,13 @@ sf::Packet Game(ClientNetwork& CN, std::vector<sf::CircleShape> &grid, const int
 				if (pos >= (gridWidth*gridHeight))
 				{
 					grid[pos -= gridWidth].setFillColor(deathColour);
+					users[i].setAlive(false);
 					return packet;
 				}
 				if (grid[pos].getFillColor() != blankSpace)
 				{
 					grid[pos].setFillColor(deathColour);
+					users[i].setAlive(false);
 					return packet;
 				}
 				else
