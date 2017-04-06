@@ -15,7 +15,7 @@ constexpr int SERVER_TCP_PORT(53000);
 class ClientNetwork
 {
 public:
-	ClientNetwork();
+	ClientNetwork() = default;
 	virtual ~ClientNetwork() = default;
 	void client();
 	bool connect(TcpClient& socket);
@@ -28,7 +28,8 @@ public:
 	const int updateNumClients();
 	const int requestNumClients(); 
 	const bool checkGameStart();
-	const bool heartBeatplayer(const int i); 
+	const bool heartBeatPlayer(const int i); 
+	const bool readyToGo(); 
 private:
 	std::atomic<int> client_num = 9; 
 	std::vector<sf::Packet> packets; 
@@ -36,8 +37,9 @@ private:
 	std::mutex mtx; 
 	std::atomic<int> known_clients = 0;
 	std::string cmd = "0000"; 
-	std::string prev_message = ""; 
+	std::string prev_msg = ""; 
 	bool game_start = false; 
 	bool has_disconnected = false; 
 	bool axis_of_movement = false;
+	bool players_are_set = false; 
 };

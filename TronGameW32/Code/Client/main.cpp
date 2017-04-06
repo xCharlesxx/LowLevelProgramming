@@ -15,16 +15,18 @@ enum class SceneSelector
 void playerDead();
 void waitForValidID(ClientNetwork& CN, sf::Clock clock); 
 //bool MainMenu(MainMenuSelection &MMS, sf::Sprite &join_game);
-sf::Packet game(ClientNetwork& CN, std::vector<sf::CircleShape>& grid, const int grid_width, const int grid_height, sf::Clock clock, std::vector<User> &users);
+sf::Packet game(ClientNetwork& CN, std::vector<sf::CircleShape>& grid, const int GRID_WIDTH, const int GRID_HEIGHT, sf::Clock clock, std::vector<User> &users);
 int lobby(ClientNetwork& CN);
 void init(ClientNetwork& CN, SceneSelector &SS, sf::Sprite &join_game, std::vector<sf::CircleShape> &players, int window_x, int window_y, std::vector<sf::CircleShape> &grid, std::vector<User> &users);
 sf::Color blank_space = sf::Color::Black;
 sf::Color trail_colour = sf::Color::Red;
 sf::Color death_colour = sf::Color::Cyan;
 sf::Color winner_colour;
-const int grid_width = 30;
-const int grid_height = 30;
-const float shape_size = 10.0f;
+const int GRID_WIDTH = 30;
+const int GRID_HEIGHT = 30;
+const float SHAPE_SIZE = 10.0f;
+
+
 
 int main()
 {
@@ -65,6 +67,10 @@ int main()
 			//Check lobby contents every two seconds
 			if (clock.getElapsedTime().asSeconds() > 1)
 			{
+				for (int i = 0; i < players.size(); i++)
+				{
+					players[i].setFillColor(sf::Color::Red);
+				}
 				for (int i = 0; i < CN->requestNumClients(); i++)
 				{
 					players[i].setFillColor(sf::Color::Green);
@@ -91,9 +97,11 @@ int main()
 			break;
 		case SceneSelector::GAME:
 			packet = game(*CN, grid, 30, 30, clock, users); 
+			//Game has ended
 			if (packet.getDataSize() == 12)
 			{ 
 				clock.restart();
+				//Print gameover screen
 				for (int i = 0; i < grid.size(); i++)
 				{
 					grid[i].setFillColor(winner_colour);
@@ -103,17 +111,18 @@ int main()
 					clock.restart();
 				}
 				CN->sendPacket(packet);
-				
+				//Enter Lobby
 				init(*CN, SS, join_game, players, window.getSize().x, window.getSize().y, grid, users);
 				SS = SceneSelector::LOBBY;
 				break; 
 			}
-				 
+			//If packet isn't empty send it	 
 			if (packet.getDataSize() != 0)
 			CN->sendPacket(packet); 
-			if (CN->getClientNum() == 0)
-			CN->sendPacket(packet << "Ping");
 			CN->clearCMD();
+			//Let server know you are ready to move
+			CN->sendPacket(packet << "Ping");
+
 			for (int i = 0; i < grid.size(); i++)
 			{
 				window.draw(grid[i]);
@@ -127,6 +136,9 @@ int main()
 	}
 	return 0; 
 }
+
+
+
 void init(ClientNetwork& CN, SceneSelector &SS, sf::Sprite &join_game, std::vector<sf::CircleShape> &players, int window_x, int window_y, std::vector<sf::CircleShape> &grid, std::vector<User> &users)
 {
 	switch (SS)
@@ -145,14 +157,14 @@ void init(ClientNetwork& CN, SceneSelector &SS, sf::Sprite &join_game, std::vect
 		break;
 	case SceneSelector::GAME:
 		grid.clear(); 
-		grid.reserve(grid_width*grid_height);
-		for (int i = 0; i < grid_width*grid_height; i++)
+		grid.reserve(GRID_WIDTH*GRID_HEIGHT);
+		for (int i = 0; i < GRID_WIDTH*GRID_HEIGHT; i++)
 		{
-			int x = i % grid_width;
-			int y = i / grid_width;
-			sf::CircleShape shape(shape_size);
+			int x = i % GRID_WIDTH;
+			int y = i / GRID_WIDTH;
+			sf::CircleShape shape(SHAPE_SIZE);
 			shape.setFillColor(blank_space);
-			shape.setPosition(((shape_size * 2)*x), ((shape_size * 2)*y));
+			shape.setPosition(((SHAPE_SIZE * 2)*x), ((SHAPE_SIZE * 2)*y));
 			grid.push_back(shape);
 		}
 		users.clear(); 
@@ -160,7 +172,7 @@ void init(ClientNetwork& CN, SceneSelector &SS, sf::Sprite &join_game, std::vect
 		for (int i = 0; i < CN.requestNumClients(); i++)
 		{
 			User* user = new User();
-			user->setPos(i * (grid_width*grid_height / 4));
+			user->setPos((i *(GRID_WIDTH / 4)) + 2);
 			user->setAlive(true); 
 			switch (i)
 			{
@@ -186,6 +198,8 @@ void init(ClientNetwork& CN, SceneSelector &SS, sf::Sprite &join_game, std::vect
 	}
 }
 
+
+
 int lobby(ClientNetwork& CN)
 {
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape) || sf::Joystick::isButtonPressed(CN.getClientNum(), 1))
@@ -194,7 +208,10 @@ int lobby(ClientNetwork& CN)
 		return 1; 
 	return 0;
 }
-sf::Packet game(ClientNetwork& CN, std::vector<sf::CircleShape> &grid, const int grid_width, const int grid_height, sf::Clock clock, std::vector<User> &users)
+
+
+
+sf::Packet game(ClientNetwork& CN, std::vector<sf::CircleShape> &grid, const int GRID_WIDTH, const int GRID_HEIGHT, sf::Clock clock, std::vector<User> &users)
 {
 	//If player gets stuck in game loop, Escape can be used to end the game
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape) || sf::Joystick::isButtonPressed(CN.getClientNum(), 1)) 
@@ -208,7 +225,7 @@ sf::Packet game(ClientNetwork& CN, std::vector<sf::CircleShape> &grid, const int
 	//Check which players are alive
 	for (int i = 0; i < users.size(); i++)
 	{
-		if (!CN.heartBeatplayer(i))
+		if (!CN.heartBeatPlayer(i))
 			users[i].setAlive(false); 
 		if (users[i].getAlive() == false)
 			users_dead++; 
@@ -243,7 +260,7 @@ sf::Packet game(ClientNetwork& CN, std::vector<sf::CircleShape> &grid, const int
 			{
 			case 'L':
 				//Check if player has hit a wall
-				if (pos % grid_width == 0)
+				if (pos % GRID_WIDTH == 0)
 				{
 					grid[pos].setFillColor(death_colour);
 					users[i].setAlive(false);
@@ -265,7 +282,7 @@ sf::Packet game(ClientNetwork& CN, std::vector<sf::CircleShape> &grid, const int
 			case 'R':
 				pos++;
 				users[i].setPos(pos);
-				if (pos % grid_width == 0)
+				if (pos % GRID_WIDTH == 0)
 				{
 					pos--;
 					grid[pos].setFillColor(death_colour);
@@ -282,11 +299,11 @@ sf::Packet game(ClientNetwork& CN, std::vector<sf::CircleShape> &grid, const int
 					grid[pos].setFillColor(users[i].getColour());
 				break;
 			case 'U':
-				pos -= grid_width;
+				pos -= GRID_WIDTH;
 				users[i].setPos(pos);
 				if (pos < 0)
 				{
-					grid[pos += grid_width].setFillColor(death_colour);
+					grid[pos += GRID_WIDTH].setFillColor(death_colour);
 					users[i].setAlive(false);
 					return packet;
 				}
@@ -300,11 +317,11 @@ sf::Packet game(ClientNetwork& CN, std::vector<sf::CircleShape> &grid, const int
 					grid[pos].setFillColor(users[i].getColour());
 				break;
 			case 'D':
-				pos += grid_width;
+				pos += GRID_WIDTH;
 				users[i].setPos(pos);
-				if (pos >= (grid_width*grid_height))
+				if (pos >= (GRID_WIDTH*GRID_HEIGHT))
 				{
-					grid[pos -= grid_width].setFillColor(death_colour);
+					grid[pos -= GRID_WIDTH].setFillColor(death_colour);
 					users[i].setAlive(false);
 					return packet;
 				}
@@ -325,10 +342,14 @@ sf::Packet game(ClientNetwork& CN, std::vector<sf::CircleShape> &grid, const int
 		return packet; 
 }
 
+
+
 void playerDead()
 {
 	int msgboxID = MessageBox(NULL, (LPCWSTR)L"TROUBLE OBTAINING HOST\nATTEMPTING TO CONNECT", (LPCWSTR)L"ERROR", MB_ICONWARNING);
 }
+
+
 
 void waitForValidID(ClientNetwork& CN, sf::Clock clock)
 {
@@ -344,7 +365,7 @@ void waitForValidID(ClientNetwork& CN, sf::Clock clock)
 		if (clock.getElapsedTime().asSeconds() > patience)
 		{
 			playerDead();
-			patience += 10; 
+			patience += 1000; 
 		}
 	}
 }

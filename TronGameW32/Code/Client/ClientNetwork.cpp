@@ -2,10 +2,7 @@
 #include <thread>
 #include <Windows.h>
 #include <SFML\Window\Keyboard.hpp>
-ClientNetwork::ClientNetwork()
-{
-	
-}
+
 
 void ClientNetwork::client()
 {
@@ -60,6 +57,9 @@ void ClientNetwork::client()
 						game_start = false; 
 						axis_of_movement = false; 
 						break;
+					/*case 'P':
+						players_are_set = true; 
+						break;*/
 						//Standard player movement update
 					default:
 						cmd = packetStore;
@@ -68,7 +68,7 @@ void ClientNetwork::client()
 					//playerDead update
 					for (int i = 0; i < users.size(); i++)
 					{
-						if (packetStore[i] == 'X')
+						if (packetStore.size() == users.size() && packetStore[i] == 'X')
 							users[i].setAlive(false); 
 					}
 					if (has_disconnected == true)
@@ -82,15 +82,23 @@ void ClientNetwork::client()
 	return input(socket); 
 }
 
+
+
 const char ClientNetwork::getCMD(const int i)
 {
 	//Get current direction
 	return cmd[i];
 }
+
+
+
 void ClientNetwork::clearCMD()
 {
 	cmd = "0000"; 
 }
+
+
+
 const int ClientNetwork::requestNumClients()
 {
 	//Ask server for an update on the number of clients
@@ -103,6 +111,9 @@ const int ClientNetwork::requestNumClients()
 	}
 	return known_clients;
 }
+
+
+
 const int ClientNetwork::updateNumClients()
 {
 	known_clients = 0;
@@ -113,19 +124,36 @@ const int ClientNetwork::updateNumClients()
 	while (known_clients == 0) {}
 	return known_clients;
 }
+
+
+
 const int ClientNetwork::getClientNum()
 {
 	return client_num;
 }
+
+
+
 const bool ClientNetwork::checkGameStart()
 {
 	return game_start; 
 }
-const bool ClientNetwork::heartBeatplayer(int i)
+
+
+
+const bool ClientNetwork::heartBeatPlayer(int i)
 {
 	//Check if player is alive
 	return users[i].getAlive();
 }
+
+//const bool ClientNetwork::readyToGo()
+//{
+//	return players_are_set;
+//}
+
+
+
 bool ClientNetwork::connect(TcpClient& socket)
 {
 	// attempt connection to server
@@ -137,6 +165,9 @@ bool ClientNetwork::connect(TcpClient& socket)
 	has_disconnected = false; 
 	return true;
 }
+
+
+
 void ClientNetwork::disconnect()
 {
 	sf::Packet packet;
@@ -145,6 +176,9 @@ void ClientNetwork::disconnect()
 	sendPacket(packet); 
 	has_disconnected = true; 
 }
+
+
+
 void ClientNetwork::input(TcpClient & socket)
 {
 	//Wait for client number to be assigned
@@ -177,14 +211,14 @@ void ClientNetwork::input(TcpClient & socket)
 			if (sf::Joystick::isButtonPressed(getClientNum(), 0) && game_start != true)
 				message = "S";
 			//If command is valid
-			if (message != "" && message != prev_message)
+			if (message != "" && message != prev_msg)
 			{
 				//Send Message
 				packet << message;
 				sendPacket(packet);
 				if (message != "S")
 				axis_of_movement = !axis_of_movement; 
-				prev_message = message;
+				prev_msg = message;
 			}
 			while (!mtx.try_lock()) {};
 			for (int i = 0; i < packets.size(); i++)
@@ -196,33 +230,33 @@ void ClientNetwork::input(TcpClient & socket)
 	//Else use keyboard input
 	while (true)
 	{
-		sf::Packet packet;
-		std::string message;
-		if (axis_of_movement == true)
-		{
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
-				message = "U";
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
-				message = "D";
-		}
-		else
-		{
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
-				message = "L";
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
-				message = "R";
-		}
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space) && game_start != true)
-			message = "S";
-		if (message != "" && message != prev_message)
-		{
-			packet << message;
-			sendPacket(packet);
-			if (message != "S")
-			axis_of_movement = !axis_of_movement;
-			prev_message = message; 
-		}
-		//Wait for access to packets before sending. 
+			sf::Packet packet;
+			std::string message;
+			if (axis_of_movement == true)
+			{
+				if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
+					message = "U";
+				if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
+					message = "D";
+			}
+			else
+			{
+				if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+					message = "L";
+				if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+					message = "R";
+			}
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space) && game_start != true)
+				message = "S";
+			if (message != "" && message != prev_msg)
+			{
+				packet << message;
+				sendPacket(packet);
+				if (message != "S")
+					axis_of_movement = !axis_of_movement;
+				prev_msg = message;
+			}
+		//Wait for access to packets before sending.
 		mtx.lock();
 		for (int i = 0; i < packets.size(); i++)
 			socket.send(packets[i]);
@@ -230,6 +264,8 @@ void ClientNetwork::input(TcpClient & socket)
 		mtx.unlock();
 	}
 }
+
+
 
 void ClientNetwork::sendPacket(sf::Packet packet)
 {

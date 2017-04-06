@@ -25,6 +25,9 @@ void broadcast(TcpClients & tcp_clients, sf::Packet packet);
 void runServer(); 
 int user_count = 0; 
 int disconnected_user = 9; 
+
+
+
 int main()
 {
 	std::cout << "Searching for life signs...\n";
@@ -36,6 +39,8 @@ int main()
 
     return 0;
 }
+
+
 
 bool bindServerPort(sf::TcpListener& listener)
 {
@@ -52,6 +57,8 @@ bool bindServerPort(sf::TcpListener& listener)
 	std::cout << std::endl;
 	return true;
 }
+
+
 
 void listen(sf::TcpListener & tcp_listener, sf::SocketSelector & selector, TcpClients & tcp_clients)
 {
@@ -75,6 +82,8 @@ void listen(sf::TcpListener & tcp_listener, sf::SocketSelector & selector, TcpCl
 		}
 	}
 }
+
+
 
 void connect(sf::TcpListener & tcp_listener, sf::SocketSelector & selector, TcpClients & tcp_clients)
 {
@@ -101,6 +110,8 @@ void connect(sf::TcpListener & tcp_listener, sf::SocketSelector & selector, TcpC
 	}
 }
 
+
+
 void disconnect(TcpClients & tcp_clients)
 {
 	users[disconnected_user].setCMD("X");
@@ -109,10 +120,13 @@ void disconnect(TcpClients & tcp_clients)
 	user_count--;
 }
 
+
+
 bool receiveMsg(TcpClients & tcp_clients, sf::SocketSelector & selector)
 {
 	sf::Packet packet;
 	std::string move = "";
+	sf::Clock clock;
 	for (int i = 0; i < tcp_clients.size(); i++)
 	{
 		auto& sender_ref = *tcp_clients[i].get();
@@ -167,13 +181,25 @@ bool receiveMsg(TcpClients & tcp_clients, sf::SocketSelector & selector)
 					users[i].setCMD("D"); 
 				}
 			case 'P':
+				users[i].setPos(1);
+				for (int i = 0; i < users.size(); i++)
+				{
+					if (users[i].getPos() != 1)
+					{
+						break;
+					}
+				}
+				//if all players have sent in a ping 
 				move = "";
 				for (int x = 0; x < tcp_clients.size(); x++)
 				{
 					move += users[x].getCMD();
 				}
+				clock.restart(); 
 				packet << move;
 				broadcast(tcp_clients, packet); 
+				for (int i = 0; i < users.size(); i++)
+					users[i].setPos(0); 
 				break;
 			default:
 				//Update CMD to message
@@ -189,6 +215,9 @@ bool receiveMsg(TcpClients & tcp_clients, sf::SocketSelector & selector)
 	}
 	return true; 
 }
+
+
+
 void broadcast(TcpClients & tcp_clients, sf::Packet packet)
 {
 	//Send message to Clients
@@ -197,6 +226,9 @@ void broadcast(TcpClients & tcp_clients, sf::Packet packet)
 		tcp_clients[i].get()->send(packet);
 	}
 }
+
+
+
 void runServer()
 {
 	sf::TcpListener tcp_listener;
