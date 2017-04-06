@@ -84,6 +84,7 @@ void ClientNetwork::client()
 
 char ClientNetwork::getCMD(int i)
 {
+	//Get current direction
 	return cmd[i];
 }
 void ClientNetwork::clearCMD()
@@ -92,6 +93,7 @@ void ClientNetwork::clearCMD()
 }
 int ClientNetwork::requestNumClients()
 {
+	//Ask server for an update on the number of clients
 	users.clear(); 
 	for (int i = 0; i < knownClients; i++)
 	{
@@ -121,6 +123,7 @@ bool ClientNetwork::checkGameStart()
 }
 bool ClientNetwork::heartBeatPlayer(int i)
 {
+	//Check if player is alive
 	return users[i].getAlive();
 }
 bool ClientNetwork::connect(TcpClient& socket)
@@ -144,8 +147,9 @@ void ClientNetwork::disconnect()
 }
 void ClientNetwork::input(TcpClient & socket)
 {
-
+	//Wait for client number to be assigned
 	while (getClientNum() > 5) {}
+	//Check if a controller is connected
 	if (sf::Joystick::isConnected(getClientNum()))
 	{
 		int sensitivity = 50; 
@@ -155,6 +159,7 @@ void ClientNetwork::input(TcpClient & socket)
 			std::string message;
 			float x = sf::Joystick::getAxisPosition(getClientNum(), sf::Joystick::X);
 			float y = sf::Joystick::getAxisPosition(getClientNum(), sf::Joystick::Y);
+			//Make sure player cannot turn back on themselves
 			if (axisOfMovement == true)
 			{
 				if (y > sensitivity)
@@ -171,8 +176,10 @@ void ClientNetwork::input(TcpClient & socket)
 			}
 			if (sf::Joystick::isButtonPressed(getClientNum(), 0) && gameStart != true)
 				message = "S";
+			//If command is valid
 			if (message != "" && message != prevMessage)
 			{
+				//Send Message
 				packet << message;
 				sendPacket(packet);
 				if (message != "S")
@@ -186,6 +193,7 @@ void ClientNetwork::input(TcpClient & socket)
 			mtx.unlock();
 		}
 	}
+	//Else use keyboard input
 	while (true)
 	{
 		sf::Packet packet;
@@ -214,7 +222,8 @@ void ClientNetwork::input(TcpClient & socket)
 			axisOfMovement = !axisOfMovement;
 			prevMessage = message; 
 		}
-		while (!mtx.try_lock()) {};
+		//Wait for access to packets before sending. 
+		mtx.lock();
 		for (int i = 0; i < packets.size(); i++)
 			socket.send(packets[i]);
 		packets.clear();
@@ -224,6 +233,7 @@ void ClientNetwork::input(TcpClient & socket)
 
 void ClientNetwork::sendPacket(sf::Packet packet)
 {
+	//When packets is avaliable, add packet to vector of packets waiting to be sent.
 	mtx.lock(); 
 	std::string contents; 
 	packet >> contents;
