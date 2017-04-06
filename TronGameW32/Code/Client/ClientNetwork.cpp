@@ -55,12 +55,6 @@ void ClientNetwork::client()
 						num = "";
 						gameStart = true; 
 						break;
-						//PlayerDead update
-					case 'X':
-						packet >> num; 
-						users[atoi(num.c_str())].setAlive(false);
-						num = "";
-						break;
 						//Reset game
 					case 'G':
 						gameStart = false; 
@@ -71,6 +65,7 @@ void ClientNetwork::client()
 						cmd = packetStore;
 						break;
 					}
+					//PlayerDead update
 					for (int i = 0; i < users.size(); i++)
 					{
 						if (packetStore[i] == 'X')
@@ -176,12 +171,13 @@ void ClientNetwork::input(TcpClient & socket)
 			}
 			if (sf::Joystick::isButtonPressed(getClientNum(), 0) && gameStart != true)
 				message = "S";
-			if (message != "")
+			if (message != "" && message != prevMessage)
 			{
 				packet << message;
 				sendPacket(packet);
 				if (message != "S")
 				axisOfMovement = !axisOfMovement; 
+				prevMessage = message;
 			}
 			while (!mtx.try_lock()) {};
 			for (int i = 0; i < packets.size(); i++)

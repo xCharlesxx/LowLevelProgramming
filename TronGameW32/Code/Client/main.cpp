@@ -89,7 +89,7 @@ int main()
 			packet = Game(*CN, grid, 30, 30, clock, users); 
 			if (packet.getDataSize() == 12)
 			{ 
-				while (!sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) {}
+				while (!sf::Keyboard::isKeyPressed(sf::Keyboard::Escape) || !sf::Joystick::isButtonPressed(CN->getClientNum(), 1)) {}
 				CN->sendPacket(packet);
 				init(*CN, SS, JoinGame, players, window.getSize().x, window.getSize().y, grid, users);
 				SS = SceneSelector::LOBBY;
@@ -180,7 +180,7 @@ void init(ClientNetwork& CN, SceneSelector &SS, sf::Sprite &JoinGame, std::vecto
 
 int lobby(ClientNetwork& CN)
 {
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape) || !sf::Joystick::isButtonPressed(CN.getClientNum(), 1))
 		return 2;
 	if (CN.checkGameStart() == true)
 		return 1; 

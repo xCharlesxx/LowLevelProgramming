@@ -9,7 +9,7 @@
 using TcpClient = sf::TcpSocket;
 using TcpClientPtr = std::unique_ptr<TcpClient>;
 using TcpClients = std::vector<TcpClientPtr>;
-const sf::IpAddress SERVER_IP("164.11.111.32");
+const sf::IpAddress SERVER_IP("127.0.0.1");
 constexpr int SERVER_TCP_PORT(53000);
 
 class ClientNetwork
