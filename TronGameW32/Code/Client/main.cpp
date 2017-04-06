@@ -90,18 +90,18 @@ int main()
 			packet = Game(*CN, grid, 30, 30, clock, users); 
 			if (packet.getDataSize() == 12)
 			{ 
-				while (!sf::Keyboard::isKeyPressed(sf::Keyboard::Escape) || !sf::Joystick::isButtonPressed(CN->getClientNum(), 1)) {}
-				CN->sendPacket(packet);
-				init(*CN, SS, JoinGame, players, window.getSize().x, window.getSize().y, grid, users);
-				SS = SceneSelector::LOBBY;
 				clock.restart();
 				for (int i = 0; i < grid.size(); i++)
 				{
 					grid[i].setFillColor(winnerColour);
 					window.draw(grid[i]);
-					while (clock.getElapsedTime().asSeconds() < 0.1){}
-					clock.restart(); 
+					while (clock.getElapsedTime().asSeconds() < 0.1) {}
+					clock.restart();
 				}
+				CN->sendPacket(packet);
+				while (!sf::Keyboard::isKeyPressed(sf::Keyboard::Escape) || !sf::Joystick::isButtonPressed(CN->getClientNum(), 1)) {}
+				init(*CN, SS, JoinGame, players, window.getSize().x, window.getSize().y, grid, users);
+				SS = SceneSelector::LOBBY;
 				break; 
 			}
 				 
