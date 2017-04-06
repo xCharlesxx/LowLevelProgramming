@@ -34,6 +34,7 @@ void ClientNetwork::client()
 				{
 					switch (packetStore[0])
 					{
+						//Get ID
 					case '0':
 					case '1':
 					case '2':
@@ -41,23 +42,31 @@ void ClientNetwork::client()
 						//Convert from ascii
 						clientNum = (packetStore[0] - 48);
 						break;
+						//Reply for number of clients
 					case 'C':
 						packet >> num;
 						knownClients = atoi(num.c_str());
 						num = ""; 
 						break;
+						//Start Game command
 					case 'S':
 						packet >> num;
 						knownClients = atoi(num.c_str());
 						num = "";
 						gameStart = true; 
 						break;
+						//PlayerDead update
 					case 'X':
 						packet >> num; 
 						users[atoi(num.c_str())].setAlive(false);
 						num = "";
-						gameStart = true;
 						break;
+						//Reset game
+					case 'G':
+						gameStart = false; 
+						axisOfMovement = false; 
+						break;
+						//Standard player movement update
 					default:
 						cmd = packetStore;
 						break;
@@ -135,27 +144,40 @@ void ClientNetwork::disconnect()
 }
 void ClientNetwork::input(TcpClient & socket)
 {
-	if (getClientNum() == 1)
+
+	while (getClientNum() > 5) {}
+	if (sf::Joystick::isConnected(getClientNum()))
 	{
+		int sensitivity = 50; 
 		while (true)
 		{
-			//auto& sender_ref = socket;
 			sf::Packet packet;
 			std::string message;
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
-				message = "L";
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
-				message = "R";
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
-				message = "U";
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
-				message = "D";
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
+			float x = sf::Joystick::getAxisPosition(getClientNum(), sf::Joystick::X);
+			float y = sf::Joystick::getAxisPosition(getClientNum(), sf::Joystick::Y);
+			if (axisOfMovement == true)
+			{
+				if (y > sensitivity)
+					message = "D";
+				if (y < -sensitivity)
+					message = "U";
+			}
+			else
+			{
+				if (x > sensitivity)
+					message = "R";
+				if (x < -sensitivity)
+					message = "L";
+			}
+			if (sf::Joystick::isButtonPressed(getClientNum(), 0) && gameStart != true)
 				message = "S";
-			packet << message;
-			if (message != "" && message != lastMessage)
+			if (message != "")
+			{
+				packet << message;
 				sendPacket(packet);
-			lastMessage = message;
+				if (message != "S")
+				axisOfMovement = !axisOfMovement; 
+			}
 			while (!mtx.try_lock()) {};
 			for (int i = 0; i < packets.size(); i++)
 				socket.send(packets[i]);
@@ -163,33 +185,39 @@ void ClientNetwork::input(TcpClient & socket)
 			mtx.unlock();
 		}
 	}
-	else
+	while (true)
 	{
-		while (true)
+		sf::Packet packet;
+		std::string message;
+		if (axisOfMovement == true)
 		{
-			//auto& sender_ref = socket;
-			sf::Packet packet;
-			std::string message;
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
-				message = "L";
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
-				message = "R";
 			if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
 				message = "U";
 			if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
 				message = "D";
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
-				message = "S";
-			packet << message;
-			if (message != "" && message != lastMessage)
-				sendPacket(packet);
-			lastMessage = message;
-			while (!mtx.try_lock()) {};
-			for (int i = 0; i < packets.size(); i++)
-				socket.send(packets[i]);
-			packets.clear();
-			mtx.unlock();
 		}
+		else
+		{
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+				message = "L";
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+				message = "R";
+		}
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space) && gameStart != true)
+			message = "S";
+		if (message != "" && message != prevMessage)
+		{
+			packet << message;
+			sendPacket(packet);
+			if (message != "S")
+			axisOfMovement = !axisOfMovement;
+			prevMessage = message; 
+		}
+		while (!mtx.try_lock()) {};
+		for (int i = 0; i < packets.size(); i++)
+			socket.send(packets[i]);
+		packets.clear();
+		mtx.unlock();
 	}
 }
 
@@ -205,3 +233,36 @@ void ClientNetwork::sendPacket(sf::Packet packet)
 	}
 	mtx.unlock(); 
 }
+
+
+
+//if (getClientNum() == 1)
+//{
+//	while (true)
+//	{
+//		//auto& sender_ref = socket;
+//		sf::Packet packet;
+//		std::string message;
+//		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
+//			message = "L";
+//		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
+//			message = "R";
+//		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
+//			message = "U";
+//		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
+//			message = "D";
+//		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
+//			message = "S";
+//		packet << message;
+//		if (message != "" && message != lastMessage)
+//			sendPacket(packet);
+//		lastMessage = message;
+//		while (!mtx.try_lock()) {};
+//		for (int i = 0; i < packets.size(); i++)
+//			socket.send(packets[i]);
+//		packets.clear();
+//		mtx.unlock();
+//	}
+//}
+//else
+//{

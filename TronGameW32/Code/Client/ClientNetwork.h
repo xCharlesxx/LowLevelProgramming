@@ -29,7 +29,6 @@ public:
 	int requestNumClients(); 
 	bool checkGameStart();
 	bool heartBeatPlayer(int i); 
-	std::string lastMessage; 
 private:
 	std::atomic<int> clientNum = 9; 
 	std::vector<sf::Packet> packets; 
@@ -37,8 +36,8 @@ private:
 	std::mutex mtx; 
 	std::atomic<int> knownClients = 0;
 	std::string cmd = "0000"; 
-	std::string newCmd = "0000"; 
-	std::string prevCmd = "0000";
+	std::string prevMessage = ""; 
 	bool gameStart = false; 
 	bool hasDisconnected = false; 
+	bool axisOfMovement = false;
 };

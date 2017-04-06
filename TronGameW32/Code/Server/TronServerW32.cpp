@@ -21,6 +21,7 @@ void listen(sf::TcpListener & tcp_listener, sf::SocketSelector & selector, TcpCl
 void connect(sf::TcpListener & tcp_listener, sf::SocketSelector & selector, TcpClients & tcp_clients);
 void disconnect(TcpClients & tcp_clients);
 bool receiveMsg(TcpClients & tcp_clients, sf::SocketSelector & selector);
+void broadcast(TcpClients & tcp_clients, sf::Packet packet);
 void runServer(); 
 int userCount = 0; 
 int disconnectedUser = 9; 
@@ -88,8 +89,6 @@ void connect(sf::TcpListener & tcp_listener, sf::SocketSelector & selector, TcpC
 		std::cout << "Client connected\n";
 		selector.add(client_ref);
 		tcp_clients.push_back(std::move(client_ptr));
-
-		//std::cout << "Client (" << client_ptr.getClientID() << ") connected." << std::endl;
 		std::string welcome_msg;
 		std::string client_count = std::to_string(tcp_clients.size());
 		welcome_msg += "There are " + client_count + " connected clients\n";
@@ -139,20 +138,12 @@ bool receiveMsg(TcpClients & tcp_clients, sf::SocketSelector & selector)
 			case 'C': 
 				std::cout << "Number of Clients request Recieved from " << i << std::endl;
 				packet << "C" << std::to_string(tcp_clients.size());
-				//Broadcast to all users
-				for (int i = 0; i < tcp_clients.size(); i++)
-				{
-					tcp_clients[i].get()->send(packet);
-				}
+				broadcast(tcp_clients, packet);
 				break;
 			case 'S':
 				std::cout << "Game Start request Recieved from " << i << std::endl;
 				packet << "S" << std::to_string(tcp_clients.size());
-				//Broadcast to all users
-				for (int i = 0; i < tcp_clients.size(); i++)
-				{
-					tcp_clients[i].get()->send(packet);
-				}
+				broadcast(tcp_clients, packet);
 				break;
 			case 'X':
 				std::cout << "Player Died Recieved From " << i << std::endl;
@@ -165,12 +156,17 @@ bool receiveMsg(TcpClients & tcp_clients, sf::SocketSelector & selector)
 				disconnectedUser = i; 
 				disconnect(tcp_clients);
 				packet << "C" << std::to_string(tcp_clients.size());
-				//Broadcast to all users
-				for (int i = 0; i < tcp_clients.size(); i++)
-				{
-					tcp_clients[i].get()->send(packet);
-				}
+				broadcast(tcp_clients, packet);
 				break;
+			case 'G':
+				std::cout << "Client " << i;
+				std::cout << " Requested Reset " << std::endl;
+				packet << string;
+				broadcast(tcp_clients, packet); 
+				for (int x = 0; x < users.size(); x++)
+				{
+					users[i].setCMD("D"); 
+				}
 			case 'P':
 				move = "";
 				for (int x = 0; x < tcp_clients.size(); x++)
@@ -178,11 +174,7 @@ bool receiveMsg(TcpClients & tcp_clients, sf::SocketSelector & selector)
 					move += users[x].getCMD();
 				}
 				packet << move;
-				//Broadcast to all users
-				for (int i = 0; i < tcp_clients.size(); i++)
-				{
-					tcp_clients[i].get()->send(packet);
-				}
+				broadcast(tcp_clients, packet); 
 				break;
 			default:
 				//Update CMD to message
@@ -198,7 +190,13 @@ bool receiveMsg(TcpClients & tcp_clients, sf::SocketSelector & selector)
 	}
 	return true; 
 }
-
+void broadcast(TcpClients & tcp_clients, sf::Packet packet)
+{
+	for (int i = 0; i < tcp_clients.size(); i++)
+	{
+		tcp_clients[i].get()->send(packet);
+	}
+}
 void runServer()
 {
 	sf::TcpListener tcp_listener;
