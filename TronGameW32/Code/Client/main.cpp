@@ -17,7 +17,7 @@ void waitForValidID(ClientNetwork& CN, sf::Clock clock);
 //bool MainMenu(MainMenuSelection &MMS, sf::Sprite &join_game);
 sf::Packet game(ClientNetwork& CN, std::vector<sf::CircleShape>& grid, const int GRID_WIDTH, const int GRID_HEIGHT, sf::Clock clock, std::vector<User> &users);
 int lobby(ClientNetwork& CN);
-void init(ClientNetwork& CN, SceneSelector &SS, sf::Sprite &join_game, std::vector<sf::CircleShape> &players, int window_x, int window_y, std::vector<sf::CircleShape> &grid, std::vector<User> &users);
+void init(ClientNetwork& CN, SceneSelector &SS, sf::Sprite &join_game, sf::Sprite &player_pointer, std::vector<sf::CircleShape> &players, int window_x, int window_y, std::vector<sf::CircleShape> &grid, std::vector<User> &users);
 sf::Color blank_space = sf::Color::Black;
 sf::Color trail_colour = sf::Color::Red;
 sf::Color death_colour = sf::Color::Cyan;
@@ -32,7 +32,13 @@ int main()
 {
 	sf::Texture t_lobby;
 	sf::Sprite join_game;
+	sf::Sprite player_pointer; 
+	sf::Texture t_player; 
 	if (!t_lobby.loadFromFile("..\\..\\Resources\\Lobby.png"))
+	{
+		std::cout << "NO";
+	}
+	if (!t_player.loadFromFile("..\\..\\Resources\\Start.png"))
 	{
 		std::cout << "NO";
 	}
@@ -48,7 +54,8 @@ int main()
 	new std::thread(&ClientNetwork::client, CN);
 	waitForValidID(*CN, clock);
 	join_game.setTexture(t_lobby);
-	init(*CN, SS, join_game, players, window.getSize().x, window.getSize().y, grid, users);
+	player_pointer.setTexture(t_player); 
+	init(*CN, SS, join_game, player_pointer, players, window.getSize().x, window.getSize().y, grid, users);
 	CN->updateNumClients();
 
 	while (window.isOpen())
@@ -75,6 +82,7 @@ int main()
 				{
 					players[i].setFillColor(sf::Color::Green);
 				}
+
 				clock.restart();
 			}
 			//Check if game has been started
@@ -82,7 +90,7 @@ int main()
 			{
 				SS = SceneSelector::GAME;
 				CN->requestNumClients();
-				init(*CN, SS, join_game, players, 0, 0, grid, users);
+				init(*CN, SS, join_game, player_pointer, players, 0, 0, grid, users);
 			}
 			else if (lobby(*CN) == 2)
 			{
@@ -94,6 +102,7 @@ int main()
 				window.draw(players[i]);
 			}
 			window.draw(join_game);
+			window.draw(player_pointer); 
 			break;
 		case SceneSelector::GAME:
 			packet = game(*CN, grid, 30, 30, clock, users); 
@@ -112,7 +121,7 @@ int main()
 				}
 				CN->sendPacket(packet);
 				//Enter Lobby
-				init(*CN, SS, join_game, players, window.getSize().x, window.getSize().y, grid, users);
+				init(*CN, SS, join_game, player_pointer, players, window.getSize().x, window.getSize().y, grid, users);
 				SS = SceneSelector::LOBBY;
 				break; 
 			}
@@ -139,7 +148,7 @@ int main()
 
 
 
-void init(ClientNetwork& CN, SceneSelector &SS, sf::Sprite &join_game, std::vector<sf::CircleShape> &players, int window_x, int window_y, std::vector<sf::CircleShape> &grid, std::vector<User> &users)
+void init(ClientNetwork& CN, SceneSelector &SS, sf::Sprite &join_game, sf::Sprite &player_pointer, std::vector<sf::CircleShape> &players, int window_x, int window_y, std::vector<sf::CircleShape> &grid, std::vector<User> &users)
 {
 	switch (SS)
 	{
@@ -151,8 +160,27 @@ void init(ClientNetwork& CN, SceneSelector &SS, sf::Sprite &join_game, std::vect
 		{
 			sf::CircleShape player(50);
 			player.setFillColor(sf::Color::Red);
-			player.setPosition(window_x / 2, (window_y / 5)* (i + 1));
+			player.setPosition(window_x / 4, (window_y / 5)* (i + 1));
 			players.push_back(player);
+			if (i == CN.getClientNum())
+			player_pointer.setPosition((window_x / 2) - 50, (window_y / 5)* (i + 1));
+		}
+		switch (CN.getClientNum())
+		{
+		case 0:
+			player_pointer.setColor(sf::Color::Red);
+			break;
+		case 1:
+			player_pointer.setColor(sf::Color::Green);
+			break;
+		case 2:
+			player_pointer.setColor(sf::Color::Magenta);
+			break;
+		case 3:
+			player_pointer.setColor(sf::Color::Yellow);
+			break;
+		default:
+			break;
 		}
 		break;
 	case SceneSelector::GAME:
@@ -173,6 +201,8 @@ void init(ClientNetwork& CN, SceneSelector &SS, sf::Sprite &join_game, std::vect
 		{
 			User* user = new User();
 			user->setPos((i *(GRID_WIDTH / 4)) + 2);
+			if (i == 1 || i == 3)
+				user->setPos((i *(GRID_WIDTH / 4)) + (GRID_WIDTH*GRID_HEIGHT) - GRID_WIDTH);
 			user->setAlive(true); 
 			switch (i)
 			{

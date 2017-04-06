@@ -25,7 +25,7 @@ void broadcast(TcpClients & tcp_clients, sf::Packet packet);
 void runServer(); 
 int user_count = 0; 
 int disconnected_user = 9; 
-
+bool flip = false; 
 
 
 int main()
@@ -93,7 +93,11 @@ void connect(sf::TcpListener & tcp_listener, sf::SocketSelector & selector, TcpC
 	{
 		User* user = new User(); 
 		user->setPos(0); 
-		user->setCMD("D"); 
+		if (flip == false)
+		user->setCMD("D");
+		else 
+		user->setCMD("U");
+		flip = !flip; 
 		users.push_back(*user); 
 		std::cout << "Client connected\n";
 		selector.add(client_ref);
@@ -178,7 +182,10 @@ bool receiveMsg(TcpClients & tcp_clients, sf::SocketSelector & selector)
 				broadcast(tcp_clients, packet); 
 				for (int x = 0; x < users.size(); x++)
 				{
-					users[i].setCMD("D"); 
+					if (i == 1 || i == 3)
+						users[i].setCMD("U");
+					else
+						users[i].setCMD("D"); 
 				}
 			case 'P':
 				users[i].setPos(1);
