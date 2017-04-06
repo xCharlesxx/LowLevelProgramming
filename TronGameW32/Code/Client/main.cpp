@@ -95,11 +95,12 @@ int main()
 				{
 					grid[i].setFillColor(winnerColour);
 					window.draw(grid[i]);
-					while (clock.getElapsedTime().asSeconds() < 0.1) {}
+					window.display(); 
+					while (clock.getElapsedTime().asSeconds() < 0.005) {}
 					clock.restart();
 				}
 				CN->sendPacket(packet);
-				while (!sf::Keyboard::isKeyPressed(sf::Keyboard::Escape) || !sf::Joystick::isButtonPressed(CN->getClientNum(), 1)) {}
+				
 				init(*CN, SS, JoinGame, players, window.getSize().x, window.getSize().y, grid, users);
 				SS = SceneSelector::LOBBY;
 				break; 
@@ -195,6 +196,11 @@ int lobby(ClientNetwork& CN)
 }
 sf::Packet Game(ClientNetwork& CN, std::vector<sf::CircleShape> &grid, const int gridWidth, const int gridHeight, sf::Clock clock, std::vector<User> &users)
 {
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape) || sf::Joystick::isButtonPressed(CN.getClientNum(), 1)) 
+	{
+		for (int i = 0; i < users.size(); i++)
+			users[i].setAlive(false);
+	}
 	int usersDead = 0; 
 	std::string dead = "X";
 	sf::Packet packet; 
