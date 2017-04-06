@@ -22,13 +22,13 @@ public:
 	void disconnect(); 
 	void input(TcpClient& socket);
 	void sendPacket(sf::Packet packet);
-	char getCMD(int i); 
+	const char getCMD(const int i); 
 	void clearCMD(); 
-	int getClientNum(); 
-	int UpdateNumClients();
-	int requestNumClients(); 
-	bool checkGameStart();
-	bool heartBeatPlayer(int i); 
+	const int getClientNum(); 
+	const int UpdateNumClients();
+	const int requestNumClients(); 
+	const bool checkGameStart();
+	const bool heartBeatPlayer(int i); 
 private:
 	std::atomic<int> clientNum = 9; 
 	std::vector<sf::Packet> packets; 

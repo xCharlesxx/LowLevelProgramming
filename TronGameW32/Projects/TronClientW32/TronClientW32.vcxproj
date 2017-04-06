@@ -90,7 +90,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Code\Client\ClientNetwork.h" />
-    <ClInclude Include="..\..\Code\Client\main.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\Resources\Start.png" />

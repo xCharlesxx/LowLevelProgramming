@@ -191,6 +191,7 @@ bool receiveMsg(TcpClients & tcp_clients, sf::SocketSelector & selector)
 }
 void broadcast(TcpClients & tcp_clients, sf::Packet packet)
 {
+	//Send message to Clients
 	for (int i = 0; i < tcp_clients.size(); i++)
 	{
 		tcp_clients[i].get()->send(packet);

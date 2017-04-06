@@ -22,6 +22,9 @@ sf::Color blankSpace = sf::Color::Black;
 sf::Color trailColour = sf::Color::Red;
 sf::Color deathColour = sf::Color::Cyan;
 sf::Color winnerColour;
+const int gridWidth = 30;
+const int gridHeight = 30;
+const float shapeSize = 10.0f;
 
 int main()
 {
@@ -126,9 +129,6 @@ int main()
 }
 void init(ClientNetwork& CN, SceneSelector &SS, sf::Sprite &JoinGame, std::vector<sf::CircleShape> &players, int window_x, int window_y, std::vector<sf::CircleShape> &grid, std::vector<User> &users)
 {
-	int gridWidth = 30;
-	int gridHeight = 30;
-	float shapeSize = 10.0f;
 	switch (SS)
 	{
 	case SceneSelector::LOBBY:
@@ -349,125 +349,3 @@ void waitForValidID(ClientNetwork& CN, sf::Clock clock)
 	}
 }
 
-//while (stayOpen)
-//{
-
-//}
-
-//while (window.isOpen())
-//{
-//	while (MainMenu(MMS, JoinGame) == false)
-//	{
-//		window.clear();
-//		window.draw(JoinGame);
-//		window.display();
-//	}
-//	if (MMS == MainMenuSelection::QUIT)
-//		window.close();
-//	ClientNetwork* CN = new ClientNetwork();
-//	std::thread networking(&ClientNetwork::client, CN);
-//	waitForValidID(*CN);
-//	JoinGame.setTexture(t_Lobby);
-//	JoinGame.setColor(sf::Color::White);
-//	JoinGame.setPosition(150, 0);
-//	std::vector<sf::CircleShape> players;
-//	sf::Clock clock;
-//	CN->UpdateNumClients();
-//	while (lobby(*CN) == false)
-//	{
-//		window.clear();
-//		if (clock.getElapsedTime().asSeconds() > 2)
-//		{
-//			for (int i = 0; i < CN->requestNumClients(); i++)
-//			{
-//				players[i].setFillColor(sf::Color::Green);
-//			}
-//			clock.restart();
-//		}
-//		for (int i = 0; i < 4; i++)
-//		{
-//			window.draw(players[i]);
-//		}
-//		window.draw(JoinGame);
-//		window.display();
-//	}
-//	std::vector<sf::CircleShape> grid;
-//	int gridWidth = 30;
-//	int gridHeight = 30;
-//	grid.reserve(gridWidth*gridHeight);
-//	float shapeSize = 10.0f;
-//	for (int i = 0; i < gridWidth*gridHeight; i++)
-//	{
-//		int x = i % gridWidth;
-//		int y = i / gridWidth;
-//
-//		sf::CircleShape shape(shapeSize);
-//		shape.setFillColor(sf::Color::Green);
-//		shape.setPosition(((shapeSize * 2)*x), ((shapeSize * 2)*y));
-//		grid.push_back(shape);
-//	}
-//	std::vector<User> users;
-//	users.reserve(4);
-//	for (int i = 0; i < CN->requestNumClients(); i++)
-//	{
-//		User* user = new User();
-//		user->setPos(CN->getClientNum() * (gridWidth*gridHeight / 4));
-//		users.push_back(*user);
-//		grid[users[i].getPos()].setFillColor(sf::Color::Blue);
-//	}
-//	while (Game(*CN, grid, gridWidth, gridHeight, clock, users) == false)
-//	{
-//		window.clear();
-//		for (int i = 0; i < grid.size(); i++)
-//		{
-//			window.draw(grid[i]);
-//		}
-//		window.display();
-//		clock.restart();
-//	}
-//	window.display();
-//}
-
-		//case SceneSelector::MENU:
-		//	if (MainMenu(MMS, JoinGame) == true)
-		//	{
-		//		if (MMS == MainMenuSelection::QUIT)
-		//		{
-		//			window.close();
-		//			break;
-		//		}
-		//		SS = SceneSelector::LOBBY;
-		//		new std::thread(&ClientNetwork::client, CN);
-		//		waitForValidID(*CN);
-		//		JoinGame.setTexture(t_Lobby);
-		//		init(*CN, SS, JoinGame, players, window.getSize().x, window.getSize().y, grid, users);
-		//		CN->UpdateNumClients();
-		//	}
-		//	window.draw(JoinGame);
-		//	break;
-
-//bool MainMenu(MainMenuSelection &MMS, sf::Sprite &JoinGame)
-//{
-//	switch (MMS)
-//	{
-//	case MainMenuSelection::JOIN_GAME:
-//		JoinGame.setColor(sf::Color::Green);
-//		break;
-//	case MainMenuSelection::QUIT:
-//		JoinGame.setColor(sf::Color::White);
-//		break;
-//	default:
-//		break;
-//	}
-//
-//	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
-//	{
-//		if (MMS == MainMenuSelection::JOIN_GAME)
-//			MMS = MainMenuSelection::QUIT;
-//		else
-//			MMS = MainMenuSelection::JOIN_GAME;
-//	}
-//	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Return))
-//		return true;
-//	return false;
-//}

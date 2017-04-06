@@ -82,7 +82,7 @@ void ClientNetwork::client()
 	return input(socket); 
 }
 
-char ClientNetwork::getCMD(int i)
+const char ClientNetwork::getCMD(const int i)
 {
 	//Get current direction
 	return cmd[i];
@@ -91,7 +91,7 @@ void ClientNetwork::clearCMD()
 {
 	cmd = "0000"; 
 }
-int ClientNetwork::requestNumClients()
+const int ClientNetwork::requestNumClients()
 {
 	//Ask server for an update on the number of clients
 	users.clear(); 
@@ -103,7 +103,7 @@ int ClientNetwork::requestNumClients()
 	}
 	return knownClients;
 }
-int ClientNetwork::UpdateNumClients()
+const int ClientNetwork::UpdateNumClients()
 {
 	knownClients = 0;
 	sf::Packet packet;
@@ -113,15 +113,15 @@ int ClientNetwork::UpdateNumClients()
 	while (knownClients == 0) {}
 	return knownClients;
 }
-int ClientNetwork::getClientNum()
+const int ClientNetwork::getClientNum()
 {
 	return clientNum;
 }
-bool ClientNetwork::checkGameStart()
+const bool ClientNetwork::checkGameStart()
 {
 	return gameStart; 
 }
-bool ClientNetwork::heartBeatPlayer(int i)
+const bool ClientNetwork::heartBeatPlayer(int i)
 {
 	//Check if player is alive
 	return users[i].getAlive();
@@ -244,36 +244,3 @@ void ClientNetwork::sendPacket(sf::Packet packet)
 	}
 	mtx.unlock(); 
 }
-
-
-
-//if (getClientNum() == 1)
-//{
-//	while (true)
-//	{
-//		//auto& sender_ref = socket;
-//		sf::Packet packet;
-//		std::string message;
-//		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
-//			message = "L";
-//		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
-//			message = "R";
-//		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
-//			message = "U";
-//		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
-//			message = "D";
-//		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
-//			message = "S";
-//		packet << message;
-//		if (message != "" && message != lastMessage)
-//			sendPacket(packet);
-//		lastMessage = message;
-//		while (!mtx.try_lock()) {};
-//		for (int i = 0; i < packets.size(); i++)
-//			socket.send(packets[i]);
-//		packets.clear();
-//		mtx.unlock();
-//	}
-//}
-//else
-//{
