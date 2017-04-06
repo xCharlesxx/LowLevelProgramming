@@ -12,17 +12,17 @@ class User
 public:
 	User() = default;
 	virtual ~User() = default;
-	int getPos() { return pos; }
-	void setPos(int newPos) { pos = newPos; }
-	bool getAlive() { return isAlive; }
-	void setAlive(bool _isDead) { isAlive = _isDead; }
-	std::string getCMD() { return CMD; }
-	void setCMD(std::string _CMD) { CMD = _CMD; }
-	sf::Color getColour() { return trailColour; }
-	void setColour(sf::Color colour) { trailColour = colour; }
+	const int getPos()                     { return pos; }
+	const bool getAlive()                  { return is_alive; }
+	const std::string getCMD()             { return CMD; }
+	const sf::Color getColour()            { return trail_colour; }
+	void setPos(const int newPos)          { pos = newPos; }
+	void setAlive(const bool _isDead)      { is_alive = _isDead; }
+	void setCMD(const std::string _CMD)    { CMD = _CMD; }
+	void setColour(const sf::Color colour) { trail_colour = colour; }
 private:
 	int pos;
 	std::string CMD;
-	bool isAlive = false; 
-	sf::Color trailColour; 
+	bool is_alive = false; 
+	sf::Color trail_colour; 
 };

@@ -23,8 +23,8 @@ void disconnect(TcpClients & tcp_clients);
 bool receiveMsg(TcpClients & tcp_clients, sf::SocketSelector & selector);
 void broadcast(TcpClients & tcp_clients, sf::Packet packet);
 void runServer(); 
-int userCount = 0; 
-int disconnectedUser = 9; 
+int user_count = 0; 
+int disconnected_user = 9; 
 int main()
 {
 	std::cout << "Searching for life signs...\n";
@@ -93,20 +93,20 @@ void connect(sf::TcpListener & tcp_listener, sf::SocketSelector & selector, TcpC
 		std::string client_count = std::to_string(tcp_clients.size());
 		welcome_msg += "There are " + client_count + " connected clients\n";
 		std::cout << welcome_msg;
-		welcome_msg = std::to_string(userCount);
+		welcome_msg = std::to_string(user_count);
 		sf::Packet packet;
 		packet << welcome_msg;
 		client_ref.send(packet);
-		userCount++; 
+		user_count++; 
 	}
 }
 
 void disconnect(TcpClients & tcp_clients)
 {
-	users[disconnectedUser].setCMD("X");
+	users[disconnected_user].setCMD("X");
 	std::cout << "Client Removed\n";
-	tcp_clients.erase(std::remove(tcp_clients.begin(), tcp_clients.end(), tcp_clients[disconnectedUser]), tcp_clients.end());
-	userCount--;
+	tcp_clients.erase(std::remove(tcp_clients.begin(), tcp_clients.end(), tcp_clients[disconnected_user]), tcp_clients.end());
+	user_count--;
 }
 
 bool receiveMsg(TcpClients & tcp_clients, sf::SocketSelector & selector)
@@ -130,7 +130,7 @@ bool receiveMsg(TcpClients & tcp_clients, sf::SocketSelector & selector)
 			{
 				std::cout << "Client " << i;
 				std::cout << " Disconnected Unexpectedly " << std::endl;
-				disconnectedUser = i;
+				disconnected_user = i;
 				return false;
 			}
 			else switch (string[0])
@@ -146,13 +146,13 @@ bool receiveMsg(TcpClients & tcp_clients, sf::SocketSelector & selector)
 				broadcast(tcp_clients, packet);
 				break;
 			case 'X':
-				std::cout << "Player Died Recieved From " << i << std::endl;
+				std::cout << "player Died Recieved From " << i << std::endl;
 				users[atoi(string1.c_str())].setCMD("X");
 				break;
 			case 'K':
 				std::cout << "Client " << i;
 				std::cout << " Disconnected Gracefully " << std::endl;
-				disconnectedUser = i; 
+				disconnected_user = i; 
 				disconnect(tcp_clients);
 				packet << "C" << std::to_string(tcp_clients.size());
 				broadcast(tcp_clients, packet);

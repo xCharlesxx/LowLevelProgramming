@@ -25,19 +25,19 @@ public:
 	const char getCMD(const int i); 
 	void clearCMD(); 
 	const int getClientNum(); 
-	const int UpdateNumClients();
+	const int updateNumClients();
 	const int requestNumClients(); 
 	const bool checkGameStart();
-	const bool heartBeatPlayer(int i); 
+	const bool heartBeatplayer(const int i); 
 private:
-	std::atomic<int> clientNum = 9; 
+	std::atomic<int> client_num = 9; 
 	std::vector<sf::Packet> packets; 
 	std::vector<User> users; 
 	std::mutex mtx; 
-	std::atomic<int> knownClients = 0;
+	std::atomic<int> known_clients = 0;
 	std::string cmd = "0000"; 
-	std::string prevMessage = ""; 
-	bool gameStart = false; 
-	bool hasDisconnected = false; 
-	bool axisOfMovement = false;
+	std::string prev_message = ""; 
+	bool game_start = false; 
+	bool has_disconnected = false; 
+	bool axis_of_movement = false;
 };
