@@ -22,6 +22,7 @@ sf::Color blankSpace = sf::Color::Black;
 sf::Color trailColour = sf::Color::Red;
 sf::Color deathColour = sf::Color::Cyan;
 sf::Color winnerColour;
+
 int main()
 {
 	sf::Texture t_Lobby;
@@ -31,8 +32,6 @@ int main()
 		std::cout << "NO";
 	}
 	sf::RenderWindow window(sf::VideoMode(600, 600), "TRON");
-
-
 
 	SceneSelector SS = SceneSelector::LOBBY; 
 	ClientNetwork* CN = new ClientNetwork();
@@ -56,6 +55,7 @@ int main()
 				window.close();
 		}
 		window.clear();
+		
 		switch (SS)
 		{
 		case SceneSelector::LOBBY:
@@ -196,6 +196,7 @@ int lobby(ClientNetwork& CN)
 }
 sf::Packet Game(ClientNetwork& CN, std::vector<sf::CircleShape> &grid, const int gridWidth, const int gridHeight, sf::Clock clock, std::vector<User> &users)
 {
+	//If player gets stuck in game loop, Escape can be used to end the game
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape) || sf::Joystick::isButtonPressed(CN.getClientNum(), 1)) 
 	{
 		for (int i = 0; i < users.size(); i++)
@@ -204,6 +205,7 @@ sf::Packet Game(ClientNetwork& CN, std::vector<sf::CircleShape> &grid, const int
 	int usersDead = 0; 
 	std::string dead = "X";
 	sf::Packet packet; 
+	//Check which players are alive
 	for (int i = 0; i < users.size(); i++)
 	{
 		if (!CN.heartBeatPlayer(i))
@@ -211,39 +213,46 @@ sf::Packet Game(ClientNetwork& CN, std::vector<sf::CircleShape> &grid, const int
 		if (users[i].getAlive() == false)
 			usersDead++; 
 	}
+	//If all but one players are dead, that is the winner
 	if (usersDead == users.size() - 1)
 	{
 		for (int i = 0; i < users.size(); i++)
 			if (users[i].getAlive() == true)
 				winnerColour = users[i].getColour();
 	}
+	//If everyone is dead then game over
 	if (usersDead == users.size())
 	{
 		dead = "GAMEOVER";
 		packet << dead;
 		return packet; 
 	}
-		
+	//Wait for a delay before moving the player
 	while (!(clock.getElapsedTime().asSeconds() > 0.1)) {}
 	for (int i = 0; i < users.size(); i++)
 	{
+		//If player is alive
 		if (users[i].getAlive() == true)
 		{
 			int pos = users[i].getPos();
 			packet << dead;
 			dead = std::to_string(i);
 			packet << dead;
+			//Get most recent command
 			switch (CN.getCMD(i))
 			{
 			case 'L':
+				//Check if player has hit a wall
 				if (pos % gridWidth == 0)
 				{
 					grid[pos].setFillColor(deathColour);
 					users[i].setAlive(false);
 					return packet;
 				}
+				//Otherwise move
 				pos--;
 				users[i].setPos(pos);
+				//Check if player has collided with other player trail
 				if (grid[pos].getFillColor() != blankSpace)
 				{
 					grid[pos].setFillColor(deathColour);
@@ -305,6 +314,7 @@ sf::Packet Game(ClientNetwork& CN, std::vector<sf::CircleShape> &grid, const int
 					users[i].setAlive(false);
 					return packet;
 				}
+				//Else all clear and move player
 				else
 					grid[pos].setFillColor(users[i].getColour());
 				break;
@@ -322,6 +332,7 @@ void PlayerDead()
 
 void waitForValidID(ClientNetwork& CN, sf::Clock clock)
 {
+	//Wait until a valid client ID is secured from the Server
 	int patience = 5; 
 	bool b = true;
 	while (b)
